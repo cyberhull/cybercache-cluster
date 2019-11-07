@@ -1,0 +1,276 @@
+#! /usr/bin/php
+<?php
+/**
+ * This file is a part of the implementation of the CyberCache Cluster.
+ * Written by Vadim Sytnikov.
+ * Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+function print_help_message() {
+$msg = <<< HELP_MESSAGE
+CyberCache Markdown/Configuration Preprocessor.
+Written by Vadim Sytnikov.
+Copyright (C) 2016-2019 CyberHULL, Ltd.
+
+Usage:
+
+    c3mcp [ <option> [ <option> [ ... ]]
+
+where valid options are:
+
+    -m               generate markdown (the default),
+    -c               generate configuration,
+    -f <filename>    input file name (stdin if omitted),
+    -o <filename>    output file name (stdout if omitted),
+    -t               output to temp file and print its name,
+    -h or --help     display help message and exit.
+
+See documentation (c3mcp.md) for more information.
+
+HELP_MESSAGE;
+  fprintf(STDERR, $msg);
+}
+
+function fail($msg) {
+  fprintf(STDERR, "ERROR: $msg\n");
+  exit(3);
+}
+
+function read_input($file, $source) {
+  $text = [];
+  for (;;) {
+    $line = fgets($file);
+    if ($line !== false) {
+      $text[]= $line;
+    } else {
+      if (feof($file)) {
+        return $text;
+      } else {
+        fail("could not read '$source'");
+      }
+    }
+  }
+}
+
+const BLOCK_NONE       = 0; // ignores subsequent lines until a valid block is encountered
+const BLOCK_DOCHEADER  = 1; // outputs level 1 title and writes what follows to markdown file only
+const BLOCK_SECTION    = 2; // outputs level 2 title to MD; what follows is written as comment to config, as-is to MD
+const BLOCK_FORMAT     = 3; // outputs level 3 "Option format" title to MD, the rest as list to MD and comment to cfg
+const BLOCK_DEFAULTS   = 4; // outputs level 3 "Default values" title to MD, the rest as list to MD and comment to cfg
+const BLOCK_DOCSECTION = 5; // outputs level 2 title and writes what follows to markdown file only
+const BLOCK_CONFIG     = 6; // writes what follows to config file only, as-is
+
+function require_title($tag, $title, $nline) {
+  if (empty($title)) {
+    fail("Tag '$tag' requires non-empty <title> argument on line $nline");
+  }
+}
+
+function generate_text(array $lines, $markdown) {
+  $separator = str_repeat('-', 78);
+  $text = '';
+  $nline = 1;
+  $block = BLOCK_NONE;
+  $inset_start = false;
+  foreach ($lines as $line) {
+    $line = rtrim($line);
+    if (preg_match('/^\[([A-Z]+)(:\s*([A-Z][^]]*))?\]$/', $line, $matches)) {
+      $tag = $matches[1];
+      $title = array_key_exists(3, $matches)? $matches[3]: '';
+      switch ($tag) {
+        case 'DOCHEADER':
+          require_title($tag, $title, $nline);
+          $block = BLOCK_DOCHEADER;
+          if ($markdown) {
+            $text .= "\n# $title\n\n";
+          }
+          break;
+        case 'SECTION':
+          require_title($tag, $title, $nline);
+          $block = BLOCK_SECTION;
+          if ($markdown) {
+            $text .= "\n## $title\n\n";
+          }
+          $inset_start = true;
+          break;
+        case 'FORMAT':
+          $block = BLOCK_FORMAT;
+          if ($markdown) {
+            $text .= "\n### Option format:\n\n";
+          } else {
+            $text .= "# OPTION FORMAT\n#\n";
+          }
+          break;
+        case 'DEFAULTS':
+          $block = BLOCK_FORMAT;
+          if ($markdown) {
+            $text .= "\n### Default values:\n\n";
+          } else {
+            $text .= "# DEFAULT VALUES\n#\n";
+          }
+          break;
+        case 'DOCSECTION':
+          require_title($tag, $title, $nline);
+          $block = BLOCK_DOCSECTION;
+          if ($markdown) {
+            $text .= "\n## $title\n\n";
+          }
+          break;
+        case 'CONFIG':
+          $block = BLOCK_CONFIG;
+          break;
+        case 'SEPARATOR':
+          $block = BLOCK_NONE;
+          if ($markdown) {
+            $text .= "$separator\n";
+          } else {
+            $text .= "# $separator\n";
+          }
+          break;
+        default:
+          fail("Invalid tag on line $nline: '$tag'");
+      }
+    } else {
+      $hyphens_only = false;
+      $length = strlen($line);
+      if ($length > 0) {
+        $hyphens_only = true;
+        for ($i = 0; $i < $length; $i++) {
+          if ($line[$i] != '-') {
+            $hyphens_only = false;
+            break;
+          }
+        }
+      }
+      if (!$hyphens_only) {
+        switch ($block) {
+          case BLOCK_DOCHEADER:
+          case BLOCK_DOCSECTION:
+            if ($markdown) {
+              $text .= $line . "\n";
+            }
+            break;
+          case BLOCK_SECTION:
+            if ($markdown) {
+              $text .= $line . "\n";
+            } else {
+              if ($length > 0 && $line[0] == '>') {
+                $line = ltrim($line, ' >');
+                if ($inset_start) {
+                  $inset_start = false;
+                } else {
+                  $line = '  ' . $line;
+                }
+              } else {
+                $inset_start = true;
+              }
+              $text .= '# ' . $line . "\n";
+            }
+            break;
+          case BLOCK_FORMAT:
+          case BLOCK_DEFAULTS:
+            if ($markdown) {
+              if ($length > 0) {
+                $text .= '- `' . $line . "`\n";
+              }
+            } else {
+              $text .= '#   ' . $line . "\n";
+            }
+            break;
+          case BLOCK_CONFIG:
+            if (!$markdown) {
+              $text .= $line . "\n";
+            }
+            break;
+        }
+      }
+    }
+    $nline++;
+  }
+  return preg_replace('/\n{3,}/', "\n\n", $text);
+}
+
+$c3p_markdown = true; // generation mode (markdown/config)
+$c3p_infile = null;   // name of the input file; if not specified, STDIN is used
+$c3p_outfile = null;  // name of the output file; if not specified, STDOUT is used
+$c3p_tmpfile = false; // `true` if option `-t` was specified
+
+for ($i = 1; $i < $argc;) {
+  $opt = $argv[$i++];
+  switch ($opt) {
+    case '-f':
+      if ($i < $argc) {
+        $c3p_infile = $argv[$i++];
+      } else {
+        fail("expected <filename> argument to option '-f'");
+      }
+      break;
+    case '-o':
+      if ($i < $argc) {
+        $c3p_outfile = $argv[$i++];
+      } else {
+        fail("expected <filename> argument to option '-o'");
+      }
+      break;
+    case '-t':
+      $c3p_tmpfile = true;
+      break;
+    case '-m':
+      $c3p_markdown = true;
+      break;
+    case '-c':
+      $c3p_markdown = false;
+      break;
+    case '-h':
+    case '--help':
+      print_help_message();
+      exit(1);
+    default:
+      fail("unknown option: '$opt'");
+  }
+}
+
+$lines = null; // mostly to satisfy IDE...
+if ($c3p_infile) {
+  $file = fopen($c3p_infile, 'r');
+  if ($file) {
+    $lines = read_input($file, $c3p_infile);
+    fclose($file);
+  } else {
+    fail("could not open input file '$c3p_infile'");
+  }
+} else {
+  $lines = read_input(STDIN, 'STDIN');
+}
+
+$text = generate_text($lines, $c3p_markdown);
+
+if ($c3p_tmpfile) {
+  $c3p_outfile = tempnam('/tmp', 'c3p_');
+  if (!$c3p_outfile) {
+    fail("could not generate temporary file name");
+  }
+}
+if ($c3p_outfile) {
+  if (file_put_contents($c3p_outfile, $text) === false) {
+    fail("could not save '$c3p_outfile'");
+  }
+  if ($c3p_tmpfile) {
+    // write name of the output file to the standard output
+    echo $c3p_outfile;
+  }
+} else {
+  echo $text;
+}
+
+// tell the shell that everything went well
+exit(0);

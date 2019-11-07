@@ -1,0 +1,13 @@
+#
+# CyberCache configuration options
+#
+# This file will be "source"d by the `init.d` script before performing any operations
+# on the server. If variables defined in this script are uncommented, `init.d` will
+# "see" them, and use to set up CyberCache configuration (which CyberCach cannot do
+# by itself since it's not running at root level).
+#
+
+# argument for `ulimit -n` (max number of open file descriptors), may be needed in
+# heavy load setups
+
+# C3_MAX_NUM_HANDLES=65536

@@ -1,0 +1,157 @@
+#! /bin/bash
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+if [ "$1" == "" ]; then
+  echo "Use: switch-edition {community|enterprise|instrumented} <php-version>"
+  exit 1
+fi
+
+case "$2" in
+  7.0)
+    API_VER='20151012'
+    ;;
+  7.1)
+    API_VER='20160303'
+    ;;
+  7.2)
+    API_VER='20170718'
+    ;;
+  7.3)
+    API_VER='20180731'
+    ;;
+  *)
+    echo 'Invalid or unsupported PHP version: '$2''
+    exit 1
+    ;;
+esac
+
+if [ $(id -u) -ne 0 ]; then
+  echo "This command must be run with 'root' privileges."
+  exit 1
+fi
+
+is_running() {
+  ps cax | grep "$1" > /dev/null
+}
+
+link_executable() {
+  echo "Creating '$2' link pointing to '$1'..."
+  if ! [ -x "$1" ]; then
+    echo "ERROR: executable '$1' does not exist"
+    exit 1
+  fi
+  ln -sf "$1" "$2"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not create link '$2' pointing to '$1'"
+    exit 1
+  fi
+}
+
+set_edition() {
+
+  # 1) Pre-process configuration files
+  # ----------------------------------
+  
+  C3P_FILES=("config/cybercached-test.cfg.c3p"
+    "console-test.cfg.c3p"
+    "server-option-test.cfg.c3p")
+  for src in "${C3P_FILES[@]}"; do
+    dst=${src%.c3p}
+    ../scripts/c3p -e $1 -f "$src" -o "$dst"
+  done
+
+  # 2) Link executables
+  # -------------------
+
+  BDIR="../build"
+  link_executable "$BDIR/bin/cybercached-$2" "./dev-server"
+  link_executable "$BDIR/bin/cybercache-$3" "./dev-console"
+
+  # 3) Copy PHP extension
+  # ---------------------
+
+  LDIR="/usr/lib/php/$6"
+  if ! [ -d $LDIR ]; then
+    echo "ERROR: PHP $5 extension directory does not exist."
+    exit 1
+  fi
+  EFILE="$BDIR/lib/cybercache-$4-$6.so"
+  LFILE="$LDIR/cybercache.so"
+  echo "Copying $EFILE to $LFILE..."
+  cp $EFILE $LFILE
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not copy '$EFILE' to '$LFILE'"
+    exit 1
+  fi
+  chown root:root $LFILE
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could change ownership of '$LFILE'"
+    exit 1
+  fi
+  chmod =644 $LFILE
+  if [ $? -ne 0 ]; then
+    echo "ERROR: make '$LFILE' executable"
+    exit 1
+  fi
+
+  # 4) Restart services
+  # -------------------
+
+  echo "Restarting Apache server..."
+  # service apache2 restart
+  AFILE="/etc/init.d/apache2"
+  if [ -x $AFILE ]; then
+    if is_running apache2; then
+      $AFILE restart
+    else
+      echo "Apache 2 service does not seem to be running, will not restart"
+    fi
+  else
+    echo "Apache 2 server does not seem to be installed, will not restart"
+  fi
+
+  echo "Restarting php-fpm 7.0..."
+  # service apache2 restart
+  PFILE="/etc/init.d/php7.0-fpm"
+  if [ -x $AFILE ]; then
+    if is_running php-fpm; then
+      $PFILE restart
+    else
+      echo "PHP-FPM 7.0 service does not seem to be running, will not restart"
+    fi
+  else
+    echo "PHP-FPM 7.0 does not seem to be installed, will not restart"
+  fi
+}
+
+echo "Switching to '$1' edition, PHP $2:"
+case "$1" in
+  community)
+    # <configs> <server> <console> <extension>
+    set_edition 'ce' 'ce' 'ce' 'ce' $2 $API_VER
+    ;;
+  enterprise)
+    set_edition 'ee' 'ee' 'ee' 'ee' $2 $API_VER
+    ;;
+  instrumented)
+    set_edition 'ee' 'iee' 'ee' 'ee' $2 $API_VER
+    ;;
+  *)
+    echo "Unrecognized edition: '$1'"
+    exit 1
+    ;;
+esac

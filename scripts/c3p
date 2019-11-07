@@ -1,0 +1,286 @@
+#! /usr/bin/php
+<?php
+/**
+ * This file is a part of the implementation of the CyberCache Cluster.
+ * Written by Vadim Sytnikov.
+ * Copyright (C) 2016-2019 CyberHULL, Ltd. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+function print_help_message() {
+$msg = <<< HELP_MESSAGE
+CyberCache Text Preprocessor.
+Written by Vadim Sytnikov.
+Copyright (C) 2016-2019 CyberHULL, Ltd.
+
+Usage:
+
+    c3p [ <option> [ <option> [ ... ]]
+
+where valid options are:
+
+    -e {ce|community|ee|enterprise}  specifies target edition,
+    -f <filename>                    input file name (stdin if omitted),
+    -o <filename>                    output file name (stdout if omitted),
+    -t                               output to temp file and print its name,
+    -c <filename>                    load specified configuration file,
+    -v <name>=<value>                set configuration variable to a value,
+    -h or --help                     display help message and exit.
+
+See documentation (c3p.md) for more information.
+
+HELP_MESSAGE;
+  fprintf(STDERR, $msg);
+}
+
+function fail($msg) {
+  fprintf(STDERR, "ERROR: $msg\n");
+  exit(3);
+}
+
+function load_config($path, $mandatory, array &$config) {
+  if (file_exists($path)) {
+    $lines = file($path, FILE_IGNORE_NEW_LINES);
+    if (is_array($lines)) {
+      $num = 1;
+      foreach ($lines as $line) {
+        $line = trim($line);
+        if (strlen($line) && $line[0] != '#') {
+          $name_val = explode('=', $line, 2);
+          if (count($name_val) == 2) {
+            list($name, $value) = $name_val;
+            $value = eval("return $value;");
+            if (is_string($value)) {
+              $config[trim($name)] = $value;
+            } else {
+              fail("variable value is not a string on line $num in config file '$path'");
+            }
+          } else {
+            fail("missing '=' on line $num in config file '$path'");
+          }
+        }
+        $num++;
+      }
+    } else {
+      fail("could not load configuration file '$path'");
+    }
+  } else if ($mandatory) {
+    fail("configuration file '$path' does not exist");
+  }
+}
+
+function read_input($file, $source) {
+  $text = '';
+  for (;;) {
+    $line = fgets($file);
+    if ($line !== false) {
+      $text .= $line;
+    } else {
+      if (feof($file)) {
+        return $text;
+      } else {
+        fail("could not read '$source'");
+      }
+    }
+  }
+}
+
+function preprocess_text($text, $edition, array $config) {
+  /*
+   * 1) Process inline (single-line) selectors.
+   * ------------------------------------------
+   */
+  $text = preg_replace_callback('/C3P(.?)\[([^\]\n]+)\]/U',
+    function (array $matches) use ($edition, $config) {
+      $delimiter = $matches[1];
+      $argument = $matches[2];
+      if ($delimiter) {
+        if (!ctype_punct($delimiter) || $delimiter == ']') {
+          fail("invalid delimiter after inline C3P: '$delimiter'");
+        }
+      } else {
+        foreach ($config as $name => $value) {
+          if ($name == $argument) {
+            return $value;
+          }
+        }
+        $delimiter = '|';
+      }
+      $ce_ee = explode($delimiter, $argument);
+      if (count($ce_ee) != 2) {
+        fail("ill-formed C3P argument: '$argument' (delimiter: '$delimiter')");
+      }
+      return $ce_ee[$edition];
+    }, $text);
+  if (!is_string($text)) {
+    fail("internal preprocessing error [INLINE]");
+  }
+  /*
+   * 2) Process multi-line selectors.
+   * --------------------------------
+   */
+  $text = preg_replace_callback('/^C3P(.?)\[(\n.+\n)\]$/Usm',
+    function (array $matches) use ($edition) {
+      $delimiter = $matches[1];
+      $substitutions = $matches[2];
+      if ($delimiter) {
+        if (!ctype_punct($delimiter) || $delimiter == ']') {
+          fail("illegal delimiter after multiline C3P: '$delimiter'");
+        }
+      } else {
+        $delimiter = '|';
+      }
+      $ce_ee = explode("\n" . $delimiter . "\n", $substitutions);
+      if (count($ce_ee) != 2) {
+        fail("multiline C3P not delimited properly: '$substitutions' (delimiter: '$delimiter')");
+      }
+      /*
+       * The above `explode()` call cut off trailing "\n" from the "community" portion of the substitution
+       * text, as well as leading "\n" from the "enterprise" portion. Remaining newlines has to be taken
+       * care of explicitly.
+       */
+      return $edition? substr($ce_ee[1], 0, -1): substr($ce_ee[0], 1);
+    }, $text);
+  if (!is_string($text)) {
+    fail("internal preprocessing error [MULTILINE]");
+  }
+  return $text;
+}
+
+// configuration variables for `C3P[<variable-name>]` substitutions
+$config = [ // see 'c3p.md' for info on configuring 'c3p' utility
+  'VERSION'   => '1.0.0',
+  'ED'        => 'CE',
+  'EDITION'   => 'Community',
+  'DATE'      => date("M j, Y\n"),
+  'TIMESTAMP' => date("Y.m.d H:i:s\n")
+];
+
+$c3p_edition = 0;     // edition index (0: community, 1: enterprise)
+$c3p_infile = null;   // name of the input file; if not specified, STDIN is used
+$c3p_outfile = null;  // name of the output file; if not specified, STDOUT is used
+$c3p_tmpfile = false; // `true` if option `-t` was specified
+
+load_config($argv[0] . '.cfg', false, $config);
+
+for ($i = 1; $i < $argc;) {
+  $opt = $argv[$i++];
+  switch ($opt) {
+    case '-e':
+      if ($i < $argc) {
+        $edition = $argv[$i++];
+        switch ($edition) {
+          case 'ce':
+          case 'community':
+            $c3p_edition = 0;
+            $config['ED'] = 'CE';
+            $config['EDITION'] = 'Community';
+            break;
+          case 'ee':
+          case 'enterprise':
+            $c3p_edition = 1;
+            $config['ED'] = 'EE';
+            $config['EDITION'] = 'Enterprise';
+            break;
+          default:
+            fail("wrong <edition> argument to option '-e': '$edition'");
+        }
+      } else {
+        fail("expected <edition> argument to option '-e'");
+      }
+      break;
+    case '-f':
+      if ($i < $argc) {
+        $c3p_infile = $argv[$i++];
+      } else {
+        fail("expected <filename> argument to option '-f'");
+      }
+      break;
+    case '-o':
+      if ($i < $argc) {
+        $c3p_outfile = $argv[$i++];
+      } else {
+        fail("expected <filename> argument to option '-o'");
+      }
+      break;
+    case '-t':
+      $c3p_tmpfile = true;
+      break;
+    case '-c':
+      if ($i < $argc) {
+        load_config($argv[$i++], false, $config);
+      } else {
+        fail("expected <filename> argument to option '-c'");
+      }
+      break;
+    case '-v':
+      if ($i < $argc) {
+        $definition = $argv[$i++];
+        $name_val = explode('=', $definition, 2);
+        if (count($name_val) == 2) {
+          list($name, $value) = $name_val;
+          $value = eval("return $value;");
+          if (is_string($value)) {
+            $config[$name] = $value;
+          } else {
+            fail("value in variable definition '$definition' is not a string");
+          }
+        } else {
+          fail("missing '=' in variable definition '$definition'");
+        }
+      } else {
+        fail("expected <name>=<value> argument to option '-v'");
+      }
+      break;
+    case '-h':
+    case '--help':
+      print_help_message();
+      exit(1);
+    default:
+      fail("unknown option: '$opt'");
+  }
+}
+
+$text = null; // mostly to satisfy IDE...
+if ($c3p_infile) {
+  $file = fopen($c3p_infile, 'r');
+  if ($file) {
+    $text = read_input($file, $c3p_infile);
+    fclose($file);
+  } else {
+    fail("could not open input file '$c3p_infile'");
+  }
+} else {
+  $text = read_input(STDIN, 'STDIN');
+}
+
+$text = preprocess_text($text, $c3p_edition, $config);
+
+if ($c3p_tmpfile) {
+  $c3p_outfile = tempnam('/tmp', 'c3p_');
+  if (!$c3p_outfile) {
+    fail("could not generate temporary file name");
+  }
+}
+if ($c3p_outfile) {
+  if (file_put_contents($c3p_outfile, $text) === false) {
+    fail("could not save '$c3p_outfile'");
+  }
+  if ($c3p_tmpfile) {
+    // write name of the output file to the standard output
+    echo $c3p_outfile;
+  }
+} else {
+  echo $text;
+}
+
+// tell the shell that everything went well
+exit(0);

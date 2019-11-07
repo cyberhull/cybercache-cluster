@@ -1,0 +1,403 @@
+#! /bin/bash
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+# associative array mapping files to be included (package contents) to locations within temporary directory
+declare -A C3_EDITION_FILES
+
+# process package edition argument
+case "$1" in
+  community)
+    C3_EDITION='ce'
+    C3_EDITION_ACRONYM='CE'
+    C3_EDITION_NAME='Community'
+    C3_EDITION_REL_NAME='--conflicts'
+    C3_EDITION_REL_VALUE='cybercache-ee'
+    C3_EDITION_REC_NAME='--exclude'
+    C3_EDITION_REC_VALUE='bogus-pattern-that-we-know-will-match-no-files'
+    C3_EDITION_FILES["../build/bin/cybercache-ce"]="usr/bin/cybercache"
+    C3_EDITION_FILES["../build/bin/cybercached-ce"]="usr/bin/cybercached-ce"
+    C3_EDITION_FILES["../build/lib/cybercache-ce-20151012.so"]="usr/lib/php/20151012/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ce-20160303.so"]="usr/lib/php/20160303/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ce-20170718.so"]="usr/lib/php/20170718/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ce-20180731.so"]="usr/lib/php/20180731/cybercache.so"
+    C3_EDITION_DESC=""
+    ;;
+  enterprise)
+    C3_EDITION='ee'
+    C3_EDITION_ACRONYM='EE'
+    C3_EDITION_NAME='Enterprise'
+    C3_EDITION_REL_NAME='--replaces'
+    C3_EDITION_REL_VALUE='cybercache-ce'
+    C3_EDITION_REC_NAME='--deb-recommends'
+    C3_EDITION_REC_VALUE='phantomjs'
+    C3_EDITION_FILES["../build/bin/cybercache-ee"]="usr/bin/cybercache"
+    C3_EDITION_FILES["../build/bin/cybercached-ee"]="usr/bin/cybercached-ee"
+    C3_EDITION_FILES["../build/bin/cybercached-iee"]="usr/bin/cybercached-iee"
+    C3_EDITION_FILES["../build/lib/cybercache-ee-20151012.so"]="usr/lib/php/20151012/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ee-20160303.so"]="usr/lib/php/20160303/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ee-20170718.so"]="usr/lib/php/20170718/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ee-20180731.so"]="usr/lib/php/20180731/cybercache.so"
+    C3_EDITION_FILES["app/switch-server-version"]="opt/cybercache/bin/switch-server-version"
+    C3_EDITION_DESC="
+
+This edition also includes instrumented version of the server, supports custom
+compression dictionaries, and provides other performance improvements."
+    ;;
+  *)
+    WRONG_ARGUMENT=1
+    ;;
+esac
+
+# process package format argument
+case "$2" in
+  deb)
+    ##########################
+    # TODO
+    ##########################
+    ;;
+  rpm)
+    ##########################
+    # TODO
+    ##########################
+    ;;
+  *)
+    WRONG_ARGUMENT=1
+    ;;
+esac
+
+# make sure correct arguments were supplied
+if [[ "$WRONG_ARGUMENT" != "" || "$#" -ne 4 ]]; then
+  echo "Use: create_package {community|enterprise} {deb|rpm} <version> <iteration>"
+  exit 1
+fi
+
+# get passed version info
+C3_VERSION="$3"
+C3_ITERATION="$4"
+
+# check that `fpm` packager is installed
+if [ -x $(which fpm) ]; then
+  echo "CyberCache Package Creator"
+else
+  echo "ERROR: FPM package not installed"
+fi
+
+# directory in which all package files are to be collected
+C3_TMP=pkg_tmp
+
+# scripts to be used to generate API stub
+API_INFO_SCRIPT="../src/client/generate_api_info"
+API_STUB_SCRIPT="../src/client/generate_api_stub"
+C3_STUB_DIR="opt/cybercache/stub"
+C3_STUB_PHP_DIR=$C3_STUB_DIR/stubs/cybercache
+
+# script to be used to preprocess edition-dependent text files
+C3P_SCRIPT="../scripts/c3p"
+
+# associative array mapping files to be included (package contents) to their respective directories withing the package
+# (tests/config/cybercached-test.cfg.c3p tests/console-test.cfg.c3p tests/server-option-test.cfg.c3p get preprocessed)
+declare -A C3_FILES
+C3_FILES["../config/${C3_EDITION}/cybercached.cfg"]="etc/cybercache"
+C3_FILES["files/default/cybercached"]="etc/default"
+C3_FILES["files/init.d/cybercached"]="etc/init.d"
+C3_FILES["files/php-ini/7.0/cybercache.ini"]="etc/php/7.0/mods-available"
+C3_FILES["files/php-ini/7.1/cybercache.ini"]="etc/php/7.1/mods-available"
+C3_FILES["files/php-ini/7.2/cybercache.ini"]="etc/php/7.2/mods-available"
+C3_FILES["files/php-ini/7.3/cybercache.ini"]="etc/php/7.3/mods-available"
+C3_FILES["app/README.md.c3p"]="opt/cybercache"
+C3_FILES["app/check-cybercached"]="opt/cybercache/bin"
+C3_FILES["app/ping-cybercached"]="opt/cybercache/bin"
+C3_FILES["app/query-cybercached"]="opt/cybercache/bin"
+C3_FILES["app/restart-cybercached"]="opt/cybercache/bin"
+C3_FILES["app/start-cybercached"]="opt/cybercache/bin"
+C3_FILES["app/stop-cybercached"]="opt/cybercache/bin"
+C3_FILES["../src/magento1/README.md"]="opt/cybercache/magento1"
+C3_FILES["../src/magento1/lib/CH/Cache/Backend/CyberCache.php"]="opt/cybercache/magento1/lib/CH/Cache/Backend"
+C3_FILES["../src/magento1/app/etc/modules/CH_CyberCacheSession.xml"]="opt/cybercache/magento1/app/etc/modules"
+C3_FILES["../src/magento1/app/code/community/CH/CyberCacheSession/etc/config.xml"]="opt/cybercache/magento1/app/code/community/CH/CyberCacheSession/etc"
+C3_FILES["../src/magento1/app/code/community/CH/CyberCacheSession/Model/Session.php"]="opt/cybercache/magento1/app/code/community/CH/CyberCacheSession/Model"
+C3_FILES["../src/magento2/composer.json"]="opt/cybercache/magento2"
+C3_FILES["../src/magento2/README.md"]="opt/cybercache/magento2"
+C3_FILES["../src/magento2/registration.php"]="opt/cybercache/magento2"
+C3_FILES["../src/magento2/etc/module.xml"]="opt/cybercache/magento2/etc"
+C3_FILES["../src/magento2/src/C3/Session/CyberCacheSession.php"]="opt/cybercache/magento2/src/C3/Session"
+C3_FILES["../src/magento2/src/C3/Store/CyberCacheStore.php"]="opt/cybercache/magento2/src/C3/Store"
+C3_FILES[$API_INFO_SCRIPT]=$C3_STUB_DIR
+C3_FILES[$API_STUB_SCRIPT]=$C3_STUB_DIR
+C3_FILES["stubs/README.md"]=$C3_STUB_DIR
+C3_FILES["stubs/update_phpstorm_stub_library"]=$C3_STUB_DIR
+C3_FILES["../tests/all-tests-no-shutdown.cfg"]="opt/cybercache/tests"
+C3_FILES["../tests/all-tests.cfg"]="opt/cybercache/tests"
+C3_FILES["../tests/console-help-test.cfg"]="opt/cybercache/tests"
+C3_FILES["../tests/console-test.cfg.c3p"]="opt/cybercache/tests"
+C3_FILES["../tests/README.md"]="opt/cybercache/tests"
+C3_FILES["../tests/server-fpc-test.cfg"]="opt/cybercache/tests"
+C3_FILES["../tests/server-option-test.cfg.c3p"]="opt/cybercache/tests"
+C3_FILES["../tests/server-session-test.cfg"]="opt/cybercache/tests"
+C3_FILES["../tests/server-test.cfg"]="opt/cybercache/tests"
+C3_FILES["../tests/test-console-no-shutdown"]="opt/cybercache/tests"
+C3_FILES["../tests/extension/test-extension.inc"]="opt/cybercache/tests/extension"
+C3_FILES["../tests/extension/test-extension.php"]="opt/cybercache/tests/extension"
+C3_FILES["../tests/test-extension"]="opt/cybercache/tests"
+C3_FILES["../tests/test-console"]="opt/cybercache/tests"
+C3_FILES["../tests/start-cybercache-server"]="opt/cybercache/tests"
+C3_FILES["../tests/config/cybercached-test.cfg.c3p"]="opt/cybercache/tests/config"
+C3_FILES["../tests/config/local-test.cfg"]="opt/cybercache/tests/config"
+C3_FILES["../tests/config/remote-test.cfg"]="opt/cybercache/tests/config"
+C3_FILES["../tests/data/fpc-1.binlog"]="opt/cybercache/tests/data"
+C3_FILES["../tests/data/fpc-2.binlog"]="opt/cybercache/tests/data"
+C3_FILES["../tests/data/sample-record.txt"]="opt/cybercache/tests/data"
+C3_FILES["../tests/data/session-1.binlog"]="opt/cybercache/tests/data"
+C3_FILES["../tests/data/session-2.binlog"]="opt/cybercache/tests/data"
+C3_FILES["deb_files/copyright"]="usr/share/doc/cybercache-$C3_EDITION"
+C3_FILES["../LICENSE.md"]="opt/cybercache/license"
+C3_FILES["../GPL_v2.txt"]="opt/cybercache/license"
+C3_FILES["../lib/compression/brotli/LICENSE"]="opt/cybercache/license/brotli"
+C3_FILES["../lib/compression/lz4/LICENSE"]="opt/cybercache/license/lz4"
+C3_FILES["../lib/compression/lzf/LICENSE"]="opt/cybercache/license/lzf"
+C3_FILES["../lib/compression/lzham/LICENSE"]="opt/cybercache/license/lzham"
+C3_FILES["../lib/compression/snappy/COPYING"]="opt/cybercache/license/snappy"
+C3_FILES["../lib/compression/zlib/LICENSE"]="opt/cybercache/license/zlib"
+C3_FILES["../lib/compression/zstd/LICENSE"]="opt/cybercache/license/zstd"
+C3_FILES["../lib/hashes/farmhash/COPYING"]="opt/cybercache/license/farmhash"
+C3_FILES["../lib/hashes/murmurhash/LICENSE"]="opt/cybercache/license/murmurhash"
+C3_FILES["../lib/hashes/spookyhash/LICENSE"]="opt/cybercache/license/spookyhash"
+C3_FILES["../lib/regex/pcre2/LICENCE"]="opt/cybercache/license/pcre2"
+
+if [ "$C3_EDITION" == "ee" ]; then
+  C3_FILES["../src/warmer/cybercachewarmer"]="usr/bin"
+  C3_FILES["../src/warmer/warmer.js"]="opt/cybercache/warmer"
+  C3_FILES["../src/warmer/c3logger.js"]="opt/cybercache/warmer"
+  C3_FILES["../src/warmer/c3options.js"]="opt/cybercache/warmer"
+  C3_FILES["../src/warmer/c3processor.js"]="opt/cybercache/warmer"
+  C3_FILES["../src/warmer/c3urls.js"]="opt/cybercache/warmer"
+  C3_FILES["../src/warmer/c3version.js"]="opt/cybercache/warmer"
+  C3_FILES["../tests/optimize-network-settings"]="opt/cybercache/bin"
+fi
+
+
+# empty directories that has to be created and included
+C3_DIRS=("var/lib/cybercache"
+  "var/log/cybercache"
+  "usr/share/man/man1"
+  "usr/share/man/man5"
+  $C3_STUB_PHP_DIR
+  "opt/cybercache/tests/logs")
+
+# data to be passed to the packaging utility
+C3_OUT="$C3_TMP"
+C3_MAINTAINER="Vadim Sytnikov <vadim.sytnikov@cyberhull.com>"
+C3_NAME="cybercache-$C3_EDITION"
+C3_VENDOR="CyberHULL"
+C3_CATEGORY="database"
+C3_DEPENDS=('adduser' 'libc6 >= 2.7')
+C3_OWNDIRS=('opt/cybercache')
+C3_DESC="High-performance cache for Magento 1 & 2 and Zend/PHP applications ($C3_EDITION_ACRONYM)
+CyberCache $C3_EDITION_NAME Edition is a high-performance general-purpose and
+full-page cache solution for Magento and other Zend/PHP applications.
+
+It comes with server daemon, console application, specialized PHP extensions,
+and Magento 1 and 2 extensions. Supports concurrent processing (including
+background optimization) on multi-code boxes, replication, binlogs, specialized
+compression schemes, binary protocol, re-configuration at run time, and more.$C3_EDITION_DESC"
+C3_URL="http://www.cyberhull.com"
+C3_BEFORE_INST="inst/before_install"
+C3_AFTER_INST="inst/after_install"
+C3_BEFORE_UNINST="inst/before_uninstall"
+C3_AFTER_UNINST="inst/after_uninstall"
+C3_COMP="gz"
+C3_PRIORITY="optional"
+
+echo "Preparing '$C3_TMP' directory..."
+
+if [ -f "$C3_TMP" ]; then
+  echo "ERROR: destination '$C3_TMP' is a regular file"
+  exit 1
+fi
+
+if [ -d "$C3_TMP" ]; then
+  echo "Destination directory '$C3_TMP' already exists, removing..."
+  rm -f -r "$C3_TMP"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not remove '$C3_TMP'"
+    exit 1
+  fi
+fi
+
+echo "Collecting package files in '$C3_TMP'..."
+
+for f in "${!C3_FILES[@]}"; do
+  to="$C3_TMP/${C3_FILES[$f]}"
+  b=$(basename "$f")
+  c=${b%.c3p}
+  echo "+ $f --> $to/$c"
+  mkdir -p "$to"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not create directory '$to' (for '$b')"
+    exit 1
+  fi
+  if [ "$b" == "$c" ]; then
+    cp "$f" "$to/$b"
+    if [ $? -ne 0 ]; then
+      echo "ERROR: could not copy '$f' to '$to/$b'"
+      exit 1
+    fi
+  else
+    $C3P_SCRIPT -e $C3_EDITION -f "$f" -o "$to/$c"
+    if [ $? -ne 0 ]; then
+      echo "ERROR: could not pre-process '$f' to '$to/$c'"
+      exit 1
+    fi
+  fi
+done
+
+for f in "${!C3_EDITION_FILES[@]}"; do
+  to="$C3_TMP/${C3_EDITION_FILES[$f]}"
+  echo "+ $f --> $to"
+  todir=$(dirname $to)
+  mkdir -p "$todir"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not create directory '$todir' (for '$(basename $to)')"
+    exit 1
+  fi
+  cp "$f" "$to"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not copy '$f' to '$to'"
+    exit 1
+  fi
+done
+
+for d in "${C3_DIRS[@]}"; do
+  fd="$C3_TMP/$d"
+  mkdir -p "$fd"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not create directory '$fd'"
+    exit 1
+  fi
+done
+
+for php_api_ver in "20151012" "20160303" "20170718" "20180731"; do
+  so_file="$C3_TMP/usr/lib/php/$php_api_ver/cybercache.so"
+  chmod a-x $so_file
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not make '$so_file' non-executable"
+    exit 1
+  fi
+done
+
+echo "Generating API stub..."
+
+API_INFO_FILE="/tmp/cybercache-api-info-file.txt"
+$API_INFO_SCRIPT $API_INFO_FILE
+if [ $? -ne 0 ]; then
+  echo "ERROR: could not generate API info file '$API_INFO_FILE'"
+  exit 1
+fi
+API_STUB_FILE=$C3_TMP/$C3_STUB_PHP_DIR/cybercache.php
+$API_STUB_SCRIPT $API_INFO_FILE $API_STUB_FILE
+if [ $? -ne 0 ]; then
+  API_STUB_FALLBACK='stubs/cybercache.php'
+  echo "WARNING: could not generate API stub file '$API_STUB_FILE', using fallback file '$API_STUB_FALLBACK'"
+  cp $API_STUB_FALLBACK $API_STUB_FILE
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not copy '$API_STUB_FALLBACK'"
+    exit 1
+  fi
+fi
+
+echo "Preparing/converting documentation..."
+
+compile_doc() {
+  local md_file="$1"
+  local man_base_file="$2"
+  local man_section="$3"
+  local man_file="$C3_TMP/usr/share/man/man${man_section}/${man_base_file}.$man_section"
+  local ts=date:$(date "+%B %d, %Y")
+  local subtitle=header:"$4"
+
+  pandoc --wrap=none -s -f markdown -t man -S \
+    -V author:"Vadim Sytnikov" -V "$ts" -V "$subtitle" -V hyphenate:false \
+    -V title:"cybercache" -V section:$man_section -V adjusting:l \
+    -V footer:"Copyright (C) 2019 CyberHULL" \
+    -o "$man_file" "$md_file"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not convert '$md_file' to '$man_file'"
+    exit 1
+  fi
+  gzip -n --best "$man_file"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not compress '$man_file'"
+    exit 1
+  fi
+}
+
+compile_doc "../config/${C3_EDITION}/cybercached.md" cybercached 1 "CyberCache $C3_EDITION_ACRONYM $C3_VERSION Configuration"
+compile_doc "../doc/command_interface.md" cybercache 1 "CyberCache $C3_EDITION_ACRONYM $C3_VERSION Command Interface"
+compile_doc "../doc/protocol.md" cybercache 5 "CyberCache $C3_EDITION_ACRONYM $C3_VERSION Low-level Protocol"
+
+if [ "$C3_EDITION" == "ee" ]; then
+  compile_doc "../doc/warmer.md" cybercachewarmer 1 "CyberCache $C3_EDITION_ACRONYM $C3_VERSION Warmer/Profiler"
+fi
+
+echo "Creating DEB package..."
+
+# expands option name and list of values into option-name/option-value pairs
+expand_opt() {
+  local opt_name=$1
+  shift
+  for opt_value in "$@"; do
+    echo "$opt_name"
+    echo "$opt_value"
+  done
+}
+
+proc=fpm
+# proc=./list_arguments
+(expand_opt '-d' "${C3_DEPENDS[@]}";  echo ".") | xargs -d "\n" $proc -f -s "dir" -t "deb" \
+  --deb-auto-config-files \
+  --license custom \
+  -C "${C3_OUT}" \
+  -m "$C3_MAINTAINER" \
+  -v "$C3_VERSION" \
+  --iteration "$C3_ITERATION" \
+  -n "$C3_NAME" \
+  --vendor "$C3_VENDOR" \
+  --category "$C3_CATEGORY" \
+  $(expand_opt '--directories' "$C3_OWNDIRS") \
+  --description "$C3_DESC" \
+  --url "$C3_URL" \
+  --before-install "$C3_BEFORE_INST" \
+  --after-install "$C3_AFTER_INST" \
+  --before-remove "$C3_BEFORE_UNINST" \
+  --after-remove "$C3_AFTER_UNINST" \
+  --deb-compression "$C3_COMP" \
+  --deb-priority "$C3_PRIORITY" \
+  $C3_EDITION_REL_NAME $C3_EDITION_REL_VALUE \
+  $C3_EDITION_REC_NAME $C3_EDITION_REC_VALUE \
+  --deb-changelog "deb_files/changelog" \
+  --deb-upstream-changelog "deb_files/upstream-changelog"
+
+if [ $? -eq 0 ]; then
+  echo "Cleaning up temporary directory '$C3_TMP'..."
+  rm -f -r "$C3_TMP"
+  if [ $? -ne 0 ]; then
+    echo "ERROR: could not remove '$C3_TMP'"
+    exit 1
+  else
+    echo "Done."
+  fi
+fi

@@ -1,0 +1,36 @@
+#! /bin/bash
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+if [ "$1" == "" ]; then
+  echo "Use: generate_api_info <output-file-name>"
+  exit 1
+fi
+
+if [ "$(which php)" == "" ]; then
+  echo "This script requires PHP 7+ interpreter"
+  exit 3
+fi
+
+echo "Writing CyberCache module information to '$1'..."
+php --re cybercache > "$1"
+
+if [ $? -ne 0 ]; then
+  echo "ERROR: could not generate API information file '$1'"
+  exit 3
+else
+  echo "Successfully generated API info file '$1'"
+fi

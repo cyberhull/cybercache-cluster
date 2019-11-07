@@ -1,0 +1,4 @@
+# Working directory, do not track.
+*
+!.gitignore
+!README.md

@@ -1,0 +1,366 @@
+#
+# CyberCache Cluster Test Suite
+# Written by Vadim Sytnikov
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# -----------------------------------------------------------------------------
+#
+# This script tests setting and retrieval of server options.
+#
+# Comment at the end of each `GET` statement contains value that would have been
+# retrieved if there were no preceding `SET` statement.
+#
+# The "ultimate test" for *setting* all option is server configuration file, so
+# when server is started (either with `cybercached.cfg`, or in test
+# configuration with `config/cybercached-test.cfg`) and there are no errors, it
+# essentially means that all options' setting tests have passed.
+#
+# Apart from getting options, this script does, however, do a bit of options
+# setting tests of its own, mostly to make sure that 1) remote option setting
+# works at all, and 2) attempts to set options that can only be set during
+# server startup result in errors, 3) certain options accept all keywords they
+# are supposed to accept (meaning respective modes are operational).
+#
+print "-----------------------"
+print "  Server options test  "
+print "-----------------------"
+
+admin 'Test-Admin-Password-1'
+
+get version # CyberCache Cluster (Community edition) 0.9.6 [Cs2r]
+checkresult list '%CyberCache Cluster' '%edition'
+
+print "----- Authentication options:"
+
+get admin_password # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+set admin_password foo
+checkresult error 'Could not set option'
+
+get user_password # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+set user_password bar
+checkresult error 'Could not set option'
+
+get bulk_password # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+set bulk_password baz
+checkresult error 'Could not set option'
+
+set info_password_type admin
+checkresult ok
+get info_password_type
+checkresult list '%admin'
+set info_password_type user
+checkresult ok
+set info_password_type none
+checkresult ok
+get info_password_type # none
+checkresult list '%none'
+
+print "----- Options that cannot be set at run time:"
+
+get table_hash_method # xxhash
+checkresult list '%xxhash'
+set table_hash_method farmhash
+checkresult error 'Could not set option'
+
+get password_hash_method # murmurhash2
+checkresult list '%murmurhash2'
+set password_hash_method spookyhash
+checkresult error 'Could not set option'
+
+get session_tables_per_store # 2 | 4
+checkresult list '%C3P[2|4]'
+set session_tables_per_store 1
+checkresult error 'Could not set option'
+
+get fpc_tables_per_store # 4 | 8
+checkresult list '%C3P[4|8]'
+set fpc_tables_per_store 1
+checkresult error 'Could not set option'
+
+get tags_tables_per_store # 1 | 2
+checkresult list '%C3P[1|2]'
+set tags_tables_per_store 1
+checkresult error 'Could not set option'
+
+C3P[
+|
+get perf_num_internal_tag_refs # 1
+checkresult list '%1'
+set perf_num_internal_tag_refs 1 # not allowed at run time
+checkresult error 'Could not set option'
+]
+print "----- Option setting tests:"
+
+set global_response_compressor lzf
+checkresult ok
+get global_response_compressor
+checkresult list '%lzf'
+set global_response_compressor snappy
+checkresult ok
+set global_response_compressor lz4
+checkresult ok
+set global_response_compressor lzss3
+checkresult ok
+set global_response_compressor zstd
+checkresult ok
+C3P[
+|
+set global_response_compressor brotli
+checkresult ok
+]
+set global_response_compressor lzham
+checkresult ok
+set global_response_compressor zlib
+checkresult ok
+get global_response_compressor # zlib
+checkresult list '%zlib'
+
+set log_level debug
+checkresult ok
+get log_level
+checkresult list '%debug'
+set log_level verbose
+checkresult ok
+set log_level terse
+checkresult ok
+set log_level warning
+checkresult ok
+set log_level error
+checkresult ok
+set log_level fatal
+checkresult ok
+set log_level explicit
+checkresult ok
+set log_level normal
+checkresult ok
+get log_level # normal
+checkresult list '%normal'
+
+print "----- Connection type options:"
+
+get listener_persistent # true
+checkresult list '%true'
+get session_replicator_persistent # true
+checkresult list '%true'
+get fpc_replicator_persistent # true
+checkresult list '%true'
+set session_replicator_persistent false
+checkresult ok
+set fpc_replicator_persistent false
+checkresult ok
+get session_replicator_persistent # false
+checkresult list '%false'
+get fpc_replicator_persistent # false
+checkresult list '%false'
+
+print "----- Common options:"
+
+get binlog_integrity_check # true
+checkresult list '%true'
+get command_integrity_check # true
+checkresult list '%true'
+get fpc_binlog_rotation_threshold # 256m
+checkresult list '%256m'
+get fpc_binlog_sync # none
+checkresult list '%none'
+get fpc_default_lifetimes # 1d 2d 20d 60d
+checkresult list '%1d 2d 20d 60d'
+get fpc_eviction_mode # lru
+checkresult list '%lru'
+get fpc_max_lifetimes # 10d 30d 60d 60d
+checkresult list '%10d 30d 60d 60d'
+get fpc_optimization_compressors # zlib zstd | zstd brotli
+checkresult list '%C3P[zlib zstd|zstd brotli]'
+get fpc_optimization_interval # 10s
+checkresult list '%10s'
+get fpc_read_extra_lifetimes # 1d 2d 20d 60d
+checkresult list '%1d 2d 20d 60d'
+get fpc_response_compressor # snappy
+checkresult list '%snappy'
+get free_disk_space_warning_threshold # 64m
+checkresult list '%64m'
+get health_check_interval # 10m
+checkresult list '%10m'
+get log_rotation_threshold # 16m
+checkresult list '%16m'
+get max_fpc_memory # 1g or 0b
+checkresult list
+get max_memory # 0b
+checkresult list '%0b'
+get max_session_memory # 512m or 0b
+checkresult list
+get num_connection_threads # 2 (community) or 8 (enterprise)
+checkresult list '%C3P[2|8]'
+get response_integrity_check # false
+checkresult list '%false'
+get session_binlog_rotation_threshold # 256m
+checkresult list '%256m'
+get session_binlog_sync # full
+checkresult list '%full'
+get session_default_lifetimes # 1h 2h 1d 2w
+checkresult list '%1h 2h 1d 2w'
+get session_eviction_mode # expiration-lru
+checkresult list '%expiration-lru'
+get session_first_write_lifetimes # 30s 1m 2m 10m
+checkresult list '%30s 1m 2m 10m'
+get session_first_write_nums # 100 50 20 10
+checkresult list '%100 50 20 10'
+get session_optimization_compressors # zstd
+checkresult list '%zstd'
+get session_optimization_interval # 10s
+checkresult list '%10s'
+get session_read_extra_lifetimes # 30s 1m 2m 2w
+checkresult list '%30s 1m 2m 2w'
+get session_response_compressor # snappy
+checkresult list '%snappy'
+get thread_activity_time_warning_threshold # 5000
+checkresult list '%5000'
+
+print "----- Performance-tuning options:"
+
+get perf_dealloc_chunk_size # 64m
+checkresult list '%64m'
+get perf_dealloc_max_wait_time # 1500
+checkresult list '%1500'
+get perf_fpc_table_fill_factor # 1.500000
+checkresult list '%1.500000'
+get perf_fpc_unlinking_quotas # 64 1024
+checkresult list '%64 1024'
+get perf_session_table_fill_factor # 1.500000
+checkresult list '%1.500000'
+get perf_session_unlinking_quotas # 16 256
+checkresult list '%16 256'
+get perf_tags_table_fill_factor # 1.500000
+checkresult list '%1.500000'
+get perf_thread_wait_quit_time # 3000
+checkresult list '%3000'
+
+print "----- Performance-tuning options - communication queues:"
+
+get perf_binlog_loader_max_queue_capacity # 16
+checkresult list '%16'
+get perf_binlog_loader_queue_capacity # 4
+checkresult list '%4'
+get perf_config_max_queue_capacity # 256
+checkresult list '%256'
+get perf_config_queue_capacity # 8
+checkresult list '%8'
+get perf_fpc_binlog_max_queue_capacity # 512
+checkresult list '%512'
+get perf_fpc_binlog_queue_capacity # 64
+checkresult list '%64'
+get perf_fpc_opt_max_queue_capacity # 1024
+checkresult list '%1024'
+get perf_fpc_opt_queue_capacity # 32
+checkresult list '%32'
+get perf_fpc_replicator_max_queue_capacity # 32
+checkresult list '%32'
+get perf_fpc_replicator_queue_capacity # 32
+checkresult list '%32'
+get perf_listener_input_queue_capacity # 64
+checkresult list '%64'
+get perf_listener_input_queue_max_capacity # 64
+checkresult list '%64'
+get perf_listener_output_queue_capacity # 64
+checkresult list '%64'
+get perf_listener_output_queue_max_capacity # 64
+checkresult list '%64'
+get perf_log_max_queue_capacity # 1024
+checkresult list '%1024'
+get perf_log_queue_capacity # 8
+checkresult list # by this time, queue capacity might have been increased automatically, so we don't check exact size
+get perf_session_binlog_max_queue_capacity # 512
+checkresult list '%512'
+get perf_session_binlog_queue_capacity # 64
+checkresult list '%64'
+get perf_session_opt_max_queue_capacity # 1024
+checkresult list '%1024'
+get perf_session_opt_queue_capacity # 32
+checkresult list '%32'
+get perf_session_replicator_max_queue_capacity # 32
+checkresult list '%32'
+get perf_session_replicator_queue_capacity # 32
+checkresult list '%32'
+get perf_tag_manager_max_queue_capacity # 16384
+checkresult list '%16384'
+get perf_tag_manager_queue_capacity # 32
+checkresult list '%32'
+get perf_session_replicator_local_queue_capacity # 16
+checkresult list '%16'
+get perf_session_replicator_local_max_queue_capacity # 1024
+checkresult list '%1024'
+get perf_fpc_replicator_local_queue_capacity # 16
+checkresult list '%16'
+get perf_fpc_replicator_local_max_queue_capacity # 1024
+checkresult list '%1024'
+
+print "----- Write-only options:"
+
+get fpc_binlog_file # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get fpc_binlog_rotation_path # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get fpc_replicator_addresses # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get fpc_replicator_port # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get include # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get listener_addresses # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get listener_port # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get log_file # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get log_rotation_path # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_fpc_init_table_capacity # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_fpc_opt_num_checks # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_fpc_opt_num_comp_attempts # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_fpc_opt_retain_counts # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_session_init_table_capacity # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_session_opt_num_checks # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_session_opt_num_comp_attempts # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_session_opt_retain_counts # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_session_store_max_queue_capacity # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_session_store_queue_capacity # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_fpc_store_max_queue_capacity # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_fpc_store_queue_capacity # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get perf_tags_init_table_capacity # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get session_binlog_file # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get session_binlog_rotation_path # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get session_replicator_addresses # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+get session_replicator_port # <value could not be retrieved>
+checkresult list '%value could not be retrieved'
+
+print "-------------------------------"
+print "  Server options test PASSED.  "
+print "-------------------------------"

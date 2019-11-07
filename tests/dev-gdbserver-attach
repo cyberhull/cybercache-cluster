@@ -1,0 +1,62 @@
+#! /bin/bash
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+for opt in "$@"; do
+  case "$opt" in
+    --help)
+      echo "Use: dev-gdbserver-attach [ --help | --force | --pid=<PID> ]"
+      echo "\nIf '--force' option is given, the script will remove cybercached PID before starting the server."
+      echo "\nIf '--pid' option is NOT given, the script will try to find 'cybercached' process."
+      exit 1
+      ;;
+    --force)
+      REMOVE_CYBERCACHE_PID=1
+      ;;
+    --pid=*)
+      PID=${opt:6}
+      ;;
+  esac
+done
+
+if [ $(id -u) -ne 0 ]; then
+  echo "This command must be run with 'root' privileges"
+  exit 1
+fi
+
+rm -f logs/*.log
+rm -f logs/*.blf
+echo "Cleaned [bin]log files."
+if [ -n "$REMOVE_CYBERCACHE_PID" ]; then
+  rm -f /var/run/cybercache/cybercached.pid
+  echo "Removed PID file."
+fi
+
+if [ -z "$PID" ]; then
+  echo "Option --pid was not specified, trying to auto-detect PID..."
+  PID=$(pgrep cybercached)
+  if [ -z "$PID" ]; then
+    echo "Production server does not seem to be running, trying to locate Development version..."
+    PID=$(pgrep dev-server)
+    if [ -z "$PID" ]; then
+      echo "Development version does not seem to be running either, GDBServer will not start."
+      exit 1
+    fi
+  fi
+fi
+
+echo "Attaching to PID $PID..."
+gdbserver --attach :8121 "$PID"

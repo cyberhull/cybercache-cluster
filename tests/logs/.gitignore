@@ -1,0 +1,3 @@
+# Working directory for the server to store log files during tests.
+*
+!.gitignore

@@ -1,0 +1,149 @@
+#
+# CyberCache Cluster Test Suite
+# Written by Vadim Sytnikov
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# -----------------------------------------------------------------------------
+#
+# Command file that contains various settings for the console; its purpose is 
+# not to apply settings as such, but to test console-only commands.
+#
+# Not all commands "internal" to console are represented here: help-related
+# commands are tested in a separate batch file, while commands checking server
+# responses can only be tested after sending commands to the server.
+#
+print "------------------------"
+print "  General console test  "
+print "------------------------"
+
+version
+
+print "----- VERBOSITY command:"
+verbosity
+verbosity explicit
+verbosity fatal
+verbosity error
+verbosity warning
+verbosity terse
+# only the below settings should be reported
+verbosity normal
+verbosity verbose
+verbosity debug
+
+print "----- CONNECT command:"
+connect
+connect 127.0.0.1
+connect 127.0.0.1 1000
+connect cyberhull.com
+connect cyberhull.com 65535
+connect localhost 8120
+
+print "----- PERSISTENT command:"
+persistent
+persistent off
+persistent false
+persistent no
+persistent on
+persistent true
+persistent yes
+
+print "----- USER and ADMIN commands:"
+# the test sets "real" administrative password later, when it's actually needed
+user ?
+user -
+user 'sample-password'
+user ''
+admin ?
+admin -
+admin 'another-sample-password'
+admin ''
+
+print "----- USERAGENT command:"
+useragent
+useragent unknown
+useragent bot
+useragent warmer
+useragent user
+
+print "----- TAGS, ADDTAGS, REMOVETAGS commands:"
+tags
+tags first second
+addtags third fourth fifth
+removetags first second third
+removetags fourth
+removetags
+
+print "----- LIFETIME command:"
+lifetime
+lifetime 10
+lifetime 20s
+lifetime 10m
+lifetime 20h
+lifetime 10d
+lifetime 20w
+lifetime -1
+
+print "----- MARKER command:"
+marker
+marker off
+marker on
+marker no
+marker yes
+marker false
+marker true
+
+print "----- COMPRESSOR command:"
+compressor
+compressor lzham
+compressor zlib
+compressor zstd
+C3P[
+|
+compressor brotli
+]
+compressor lzss3
+compressor lz4
+compressor lzf
+compressor snappy
+
+print "----- HASHER command:"
+hasher
+hasher xxhash
+hasher farmhash
+hasher spookyhash
+hasher murmurhash3
+hasher murmurhash2
+
+print "----- RESULT AND NEXT commands:"
+# these don't do anything useful here; just checking that they
+# can be executed even if no server commands were run yet
+result
+result 5
+result 2 16
+next
+next 8
+
+print "----- AUTORESULT command:"
+autoresult
+autoresult all
+autoresult lists
+autoresult simple
+
+print "----- DISPLAY command:"
+display
+display 32
+display 32 20 '?'
+display 24 16
+
+print "--------------------------------"
+print "  General console test PASSED.  "
+print "--------------------------------"

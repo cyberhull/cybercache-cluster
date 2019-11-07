@@ -1,0 +1,3 @@
+# This directory is mentioned in the development docs, so we include it.
+*
+!.gitignore

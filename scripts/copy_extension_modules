@@ -1,0 +1,67 @@
+#! /bin/bash
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+if [ $(id -u) -ne 0 ]; then
+  echo "This command must be run with 'root' privileges."
+  exit 1
+fi
+
+# argument: PHP API version
+copy_extension() {
+  local EDIR="/usr/lib/php/$1"
+  if ! [ -d $EDIR ]; then
+     echo "PHP extension directory '$EDIR' does not exist."
+     return 1
+  fi
+  local SFILE="../build/lib/cybercache-ee-$1.so"
+  local DFILE="$EDIR/cybercache.so"
+  echo "Copying $SFILE to $DFILE..."
+  cp $SFILE $DFILE
+  chown root:root $DFILE
+  chmod =644 $DFILE
+  return 0
+}
+
+# arguments: subdirectory in var/run, file name, common daemon name
+restart_daemon() {
+  local RDIR=$1
+  local FNAME=$2
+  local NAME=$3
+  local INAME="/etc/init.d/$FNAME"
+  if [ -s "/var/run/$RDIR/$FNAME.pid" ]; then
+    echo "$NAME seems to be running, restarting..."
+    if [ -x $INAME ]; then
+      $INAME restart
+    else
+      echo "ERROR: '$INAME' soes not exist or is not executable!"
+      exit 1
+    fi
+  else
+    echo "$NAME is not running, skipping."
+  fi
+}
+
+# copy libraries
+for API_VER in "20151012" "20160303" "20170718" "20180731"; do
+  copy_extension $API_VER
+done
+
+# restart services
+restart_daemon "apache2" "apache2" "Apache server"
+for PHP_VER in "7.0" "7.1" "7.2" "7.3"; do
+  restart_daemon "php" "php${PHP_VER}-fpm" "PHP-fpm $PHP_VER"
+done

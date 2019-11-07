@@ -1,0 +1,106 @@
+
+Usage:
+
+  cybercachewarmer [ <option> [ <option> [...]]] <url-file> [ <ulr-file> [...]]
+
+where <url-file> is either a site map XML file exported from Magento 2, or a
+custom file with URLs; valid options are:
+
+  -p[:<num-runs>] or --profile[=<num-runs>]
+      Runs warmer in profiling mode: does <num-runs> of runs over specified URL
+      set. The argument is optional; if omitted, assumed to be `1`.
+
+  -q:<num-requests> or --queue=<num-requests>
+      Sets number of concurrent page requests that will be used to load site
+      pages. Must be within 1..256 range; default is 16.
+
+  -b:<number> or --begin=<number>
+      Skips first `<number>` of URLs in specified set; default is 0.
+
+  -n:<number> or --number=<number>
+      Uses only up to `<number>` of URLs from specified set; zero <number> is
+      treated as "use all"; default is 0.
+
+  -o:<timestamp> or --older-than=<timestamp>
+      Only loads pages modified after specified timestamp. The `<timestamp>`
+      must be either in "YYYY-MM-DD HH:MM:SS", or in "<number>{s|m|h|d|w}"
+      format. Underscore can be used instead of space as date/time separator.
+
+  -r:<low-priority>,<high-priority> or --range=<low-priority>,<high-priority>
+      Only load pages with priorities within specified range; the range is
+      inclusive and defaults to `0.0..1.0`.
+
+  -s:<order> or --sort=<order>
+      Sorts loaded URLs before accessing them; valid sort orders are
+      `low-priority-first`, `high-priority-first` (default in cache  warming
+      mode), and `as-is` (default in profiling mode).
+
+  -a:<user-agent> or --agent=<user-agent>
+      Emulates specified user agent; possible user agents are `unknown`, `bot`,
+      `warmer` (default in cache warming mode), and `user` (default in
+      performance measurement mode).
+
+  -w[:<timestamp>] or --warm-up[=<timestamp>]
+      Tells profiler to do an extra non-timed warm-up run before actual
+      profiling runs; ignored if `-p` is not specified. The `<timestamp>`
+      argument has the same format as that of `-o`/`--older-than` option, it
+      makes profiler wait specified time (or until specified time) before doing
+      actual profiler runs.
+
+  -u:<priority>,<url> or --url=<priority>,<url>
+      Adds specified URL to the list of URLs that will be accessed; the
+      `<priority>` is a floating point number in range `0.0..1.0`, inclusive.
+
+  -i[:<boolean>] or --images[=<boolean>]
+      Tells warmer/profiler whether to load images and favicons; default
+      boolean is `true`. If not specified at all, images will not be loaded.
+
+  -c[:<boolean>] or --css[=<boolean>]
+      Tells warmer/profiler whether to load style sheets and web fonts; default
+      boolean is `true`. If not specified at all, CSS/fonts will not be loaded.
+
+  -j[:<boolean>] or --javascript[=<boolean>]
+      Tells warmer/profiler whether to load and execute JavaScript [files];
+      default boolean is `true`. If not specified at all, JavaScript [files]
+      will be loaded and executed.
+
+  -l:<level> or --log-level=<level>
+      Sets log level; valid levels are `none`, `error`, `warning`, `terse`,
+      `normal` (the default), and `verbose`.
+
+  -f:<log-file-path> or --log-file=<log-file-path>
+      Sets the name of the log file; default is `cybercache_warmer.log`.
+
+  -d:<mode> or --display=<mode>
+      Sets display mode; valid modes are `regular` (the default), `total-time`,
+      `page-time`, and `none`.
+
+  -e:<reason> or --exit-if=<reason>
+      Sets error tolerance; valid reasons are `user-interrupt` (default in
+      cache warming mode), `recorded-errors`, `missing-page` (default in
+      profiling mode), and `missing-resource`.
+
+  -x:<num>,<width>,<height>,<path> or --export=<num>,<width>,<height>,<path>
+      Exports loaded page or pages to image file(s). `<num>` is number of last
+      pages to save, or `all`; `<width>` and `<height>` set viewport size. The
+      `<path>` specifies file name and format (`.pdf`, `.png`, `.jpg`, `.bmp`,
+      `.ppm`, `.gif`); if path contains directory, if will be created; if name
+      contains '@', it will be replaced with page component of the URL.
+
+  -t:<milliseconds> or --timeout=<milliseconds>
+      Sets timeout before page is exported to an image file, which may be
+      necessary for elaborate AJAX pages; default timeout is 1000.
+
+  -v or --version
+      Prints out version number and exits.
+
+  -h or --help
+      Prints out help information and exits.
+
+  @<option-file>
+      Loads and parses specified option (a.k.a. response) file.
+
+  --
+      Marks end of options.
+
+See `cybercachewarmer(1)` for the detailed description.

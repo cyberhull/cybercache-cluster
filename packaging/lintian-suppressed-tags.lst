@@ -1,0 +1,8 @@
+unstripped-binary-or-object
+embedded-library
+dir-or-file-in-opt
+manpage-has-bad-whatis-entry
+package-contains-timestamped-gzip
+binary-without-manpage
+php-script-but-no-phpX-cli-dep
+init.d-script-does-not-source-init-functions

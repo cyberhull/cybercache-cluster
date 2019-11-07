@@ -1,0 +1,199 @@
+cybercache (1.3.5-1) unstable; urgency=low
+
+  * Changed application and source code license.
+  * Updated documentation.
+  * Fixed several maintenance scripts.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Thu, 07 Nov 2019 13:05:56 +0300
+
+cybercache (1.3.4-2) unstable; urgency=low
+
+  * Maintenance release.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Mon, 28 Oct 2019 16:10:17 +0300
+
+cybercache (1.3.4-1) unstable; urgency=low
+
+  * Added support for PHP 7.1, 7.2, and 7.3 (cli, apache2, php-fpm).
+  * Improved logging (excluded false positives, made logs readable by "world").
+  * Implemented auto-saving server databases at set intervals.
+  * Fixed session life time handling in Magento 1 extension.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Sun, 27 Oct 2019 21:08:04 +0300
+
+cybercache (1.3.3-1) unstable; urgency=low
+
+  * Implemented persistent connections (supported by all components).
+  * Created Magento 1 extension using CyberCache as session store and cache.
+  * Miscellaneous minor fixes, optimizations, and improvements.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Mon, 21 Oct 2019 08:54:44 +0300
+
+cybercache (1.3.2-1) unstable; urgency=low
+
+  * Implemented miscellaneous minor optimizations and improvements.
+  * Fixed sending big data buffers by console application.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Sat, 02 Dec 2017 12:28:51 +0300
+
+cybercache (1.3.1-1) unstable; urgency=low
+
+  * Compressors configured to always use "fast" mode for initial compression.
+  * Fixed version number in Magento extension.
+  * Made 'snappy' the default (initial) compressor.
+  * Added key optimization stats to the 'INFO' command outout.
+  * Re-built instrumented version with debug-friendly optimizations.
+  * Removed unused code from all applications comprising the package.
+  * Marked "cold" code as such throughout the project to aid GCC optimizer.
+  * Optimized code by removing extraneous return values and their checks.
+  * Removed lock tracking from non-instrumented builds.
+  * Turned checks in non-library methods into 'assert()'s.
+  * Enabled internal handling of app errors (e.g. segfaults) by the server.
+  * Fixed subsystem (thread) reporting in certain server log messages.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Tue, 28 Nov 2017 16:16:54 +0300
+
+cybercache (1.3.0-1) unstable; urgency=low
+
+  * Non-instrumented apps and libraries re-built with optimization turned On.
+  * Removed debug code from Magento 2 extension.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Thu, 19 Oct 2017 15:49:00 +0300
+
+cybercache (1.2.8-1) unstable; urgency=high
+
+  * Fixed shutting down the server upon initialization errors.
+  * Fixed checking command/resonse formats in common I/O library.
+  * Fixed setting session and FPC records' expiration times.
+  * Fixed passing lifetimes of FPC records by PHP extension (Closes: #16873)
+  * Modified compresion library to support 4-gigabyte data buffers
+  * Fixed sending huge IDs, tag names, and data buffers (Closes: #16865)
+  * Adjusted server config to make emptying message queues more efficient.
+  * Implemented auto-shrinking of critical message queues during health checks.
+  * Fixed disposal of huge numbers of records (Closes: #16942)
+  * Improved instrumentation of message queues.
+  * Fixed server crashes upon sending empty strings as tags (Closes: #16872)
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Sun, 08 Oct 2017 03:41:53 +0300
+
+cybercache (1.2.7-1) unstable; urgency=medium
+
+  * Fixed concurrent creation/removal of FPC records (Closes: #16866)
+  * Fixed bulk removal of cache records.
+  * Implemented network settings' adjustment script.
+  * Instrumented socket library.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Fri, 29 Sep 2017 22:50:55 +0300
+
+cybercache (1.2.6-1) unstable; urgency=low
+
+  * Fixed concurrent access to commands' data buffers.
+  * Added instrumentation of server's list responses.
+  * Fixed sending long IDs in server responses to various 'GETxxx' commands.
+  * Fixed handling of zero-length strings as server record IDs.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Mon, 25 Sep 2017 10:40:06 +0300
+
+cybercache (1.2.5-1) unstable; urgency=low
+
+  * Minor documentation improvements.
+  * Implementred cache warmer/profiler utility (`cybercachewarmer`).
+  * Fixed server help page (few short options were missing).
+  * Server config file search path changed from `/etc/` to `/etc/cybercache`.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Thu, 14 Sep 2017 01:14:47 +0300
+
+cybercache (1.2.4-1) unstable; urgency=medium
+
+  * Added `IO_Objects_Cloned` stats counter.
+  * Fixed `IO_Objects_Active` stats counter (was not incremented in a branch).
+  * Improved handling of duplicate tags in `CLEAN` and `GETIDS*TAGS` commands.
+  * Fixed cleaning FPC records created with duplicate tags.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Wed, 30 Aug 2017 17:08:37 +0300
+
+cybercache (1.2.3-1) unstable; urgency=high
+
+  * Fixed binlog and replication services broken in 1.2.2.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Mon, 28 Aug 2017 17:40:33 +0300
+
+cybercache (1.2.2-1) unstable; urgency=high
+
+  * Improved diagnostic messages during server health checks.
+  * Fixed potential deadlock in FPC object and tags stores.
+  * Fixed session locking (concurrent lock resolution).
+  * Fixed assertion failures in event processor upon signal interruptions.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Sun, 27 Aug 2017 07:56:48 +0300
+
+cybercache (1.2.1-1) unstable; urgency=medium
+
+  * Fixed setting sync mode of an inactive binlog.
+  * Implemented configurable session locking.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Wed, 23 Aug 2017 05:01:28 +0300
+
+cybercache (1.2.0-1) unstable; urgency=medium
+
+  * Implemented extra checks facilitating reliability of object disposal.
+  * Optimized creation of new session and FPC records.
+  * Added various performance counters to the instrumented version.
+  * Implemented 'STATS' server command and respective API calls.
+  * Fixed setting optimization compressors.
+  * Provided separate test suites for Community and Enterprise editions.
+  * Created Community, Enterprise, and Instrumented builds of all components.
+  * Optimized waiting for data reading completion using lightweight semaphores.
+  * Optimized per-object locking using lightweight mutexes.
+  * Fixed replication to more than one slave server.
+  * Fixed diagnostic messages logged by optimizers.
+  * Fixed/updated Magento extension documentation.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Sun, 20 Aug 2017 20:31:08 +0300
+
+cybercache (1.1.5-1) unstable; urgency=medium
+
+  * Improved scripts used to start server in test mode.
+  * Changed protocol for storing session data (added explicit lifetime).
+  * Fixed retrieval of session data (expired records are no longer returned).
+  * Explicit lifetime can now only be set for regular-user session/FPC records.
+  * PHP extension functions that are to be used in ctors now throw exceptions.
+  * Implemented storing server data on shutdown and reloading it on startup.
+  * Implemented CMD_STORE command and respective console/extension functions.
+  * Updated tests to cover 'STORE' (console) and 'c3_store()' (PHP) calls.
+  * Completed Magento 2 extension (added session support).
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Mon, 17 Jul 2017 01:39:35 +0300
+
+cybercache (1.1.4-1) unstable; urgency=medium
+
+  * Improved command/response logging in debug builds.
+  * Fixed return value of the `c3_load()` PHP extension method.
+  * Implemented compression threshold in server, console, and PHP extension.
+  * Fixed application of the password hashing method in PHP extension.
+  * Fixed handling of zero-length payload by server, console, and PHP extension.
+  * Fixed strings returned by PHP extension (missing terminating '\0').
+  * Re-worked logging of "hung" threads in server's health monitor.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Mon, 03 Jul 2017 07:58:46 +0300
+
+cybercache (1.1.3-1) unstable; urgency=low
+
+  * Improved diagnostic messages written upon assertion failures / stack traces.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Mon, 29 May 2017 06:20:00 +0300
+
+cybercache (1.1.2-1) unstable; urgency=medium
+
+  * Fixed several bugs in tag manager and binlog writer.
+  * Implemented dumping of stack frames to a file upon `assert()`s.
+  * Improved server tests and respective documentation.
+  * Added information on getting more help and testing to the documentation.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Sun, 28 May 2017 05:46:25 +0300
+
+cybercache (1.1.1-1) unstable; urgency=low
+
+  * First internal release for Debian-based Linux distributions.
+
+ -- Vadim Sytnikov <vadim.sytnikov@cyberhull.com>  Sun, 14 May 2017 04:04:14 +0300

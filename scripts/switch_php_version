@@ -1,0 +1,89 @@
+#! /bin/bash
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+if [ $(id -u) -ne 0 ]; then
+  echo "This command must be run with 'root' privileges."
+  exit 1
+fi
+
+# argument: PHP version
+is_invalid_version() {
+  case "$1" in
+    7.[0123])
+      echo ''
+      ;;
+    *)
+      echo '1'
+      ;;
+  esac
+}
+
+# check argument (requested version)
+NEW_VERSION="$1"
+if [ $(is_invalid_version $NEW_VERSION) ]; then
+  echo "Requested PHP version '$NEW_VERSION' is invalid or is not supported."
+  exit 1
+fi
+
+# check installed *and* currently active version
+PHP_LINK=$(readlink -f `command -v php`)
+PHP_VERSION=${PHP_LINK: -3}
+if [ $(is_invalid_version $PHP_VERSION) ]; then
+  echo "PHP not installed, or its version ($PHP_VERSION) is not supported."
+  exit 1
+fi
+
+# check that requested version does not match currently active one
+if [ "$PHP_VERSION" == "$NEW_VERSION" ]; then
+  echo "Currently active version matches requested ($NEW_VERSION), nothing to do."
+  exit 0
+fi
+
+# optionally stop php-fpm service
+FPM_SERVICE=php${PHP_VERSION}-fpm
+if [ -s "/var/run/php/${FPM_SERVICE}.pid" ]; then
+  echo "Stopping $FPM_SERVICE service..."
+  invoke-rc.d $FPM_SERVICE stop || exit $?
+else
+  echo "Service $FPM_SERVICE is not running."
+fi
+
+# switch to target version
+echo "Switching PHP version: $PHP_VERSION --> $NEW_VERSION ..."
+update-alternatives --set php "/usr/bin/php$NEW_VERSION"
+
+# optionally reconfigure and restart Apache server
+if [ -x "/etc/init.d/apache2" ]; then
+  echo "Re-configuring Apache server..."
+  a2dismod "php$PHP_VERSION"
+  a2enmod "php$NEW_VERSION"
+  if [ -s "/var/run/apache2/apache2.pid" ]; then
+    echo "Restarting Apache service..."
+    invoke-rc.d apache2 restart || exit $?
+  else
+    echo "Apache service is not running."
+  fi
+fi
+
+# optionally start php-fpm service
+FPM_SERVICE=php${NEW_VERSION}-fpm
+if [ -x "/etc/init.d/$FPM_SERVICE" ]; then
+  echo "Starting $FPM_SERVICE service..."
+  invoke-rc.d $FPM_SERVICE start || exit $?
+else
+  echo "Service $FPM_SERVICE is not installed."
+fi

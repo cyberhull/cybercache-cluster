@@ -1,0 +1,54 @@
+#! /bin/bash
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+if [ $# -ne 1 ]; then
+  echo "Use: update_phpstorm_stub_library <path-to-phpstorm-installation-directory>"
+  exit 1
+fi
+
+if [ "$(which jar)" == "" ]; then
+  echo "ERROR: No 'jar' executable found; consider installing 'fastjar' package"
+  exit 1
+fi
+
+PHP_JAR_PATH=${1%/}/plugins/php/lib/php.jar
+if ! [ -a "$PHP_JAR_PATH" ]; then
+  echo "ERROR: No '$PHP_JAR_PATH': PhpStorm not installed (at specified path), or is of incompatible version"
+  exit 1
+fi
+if ! [ -w "$PHP_JAR_PATH" ]; then
+  echo "ERROR: The file '$PHP_JAR_PATH' is not writable by current user: consider using 'sudo'"
+  exit 1
+fi
+
+PHP_JAR_BAK_PATH=${PHP_JAR_PATH}.c3-bak
+cp $PHP_JAR_PATH $PHP_JAR_BAK_PATH
+if [ $? -ne 0 ]; then
+  echo "ERROR: Could not save backup copy of '$PHP_JAR_PATH' to '$PHP_JAR_BAK_PATH'.\nPatch aborted."
+  exit 1
+else
+  echo "PhpStorm API library backup: saved to '$PHP_JAR_BAK_PATH'"
+fi
+
+jar uf "$PHP_JAR_PATH" stubs/cybercache/cybercache.php
+if [ $? -ne 0 ]; then
+  echo "ERROR: Could not patch '$PHP_JAR_PATH'! See jar's output for the reason."
+  exit 1
+else
+  echo "Successfully patched '$PHP_JAR_PATH' archive."
+  echo "If PhpStorm is currently running, use 'Invalidate cache / Restart' from the 'File' menu for the changes to take effect."
+fi

@@ -1,0 +1,27 @@
+{
+    "name": "cyberhull/module-cybercache",
+    "type": "magento2-module",
+    "license": "proprietary",
+    "homepage": "http://www.cyberhull.com",
+    "description": "Generic and page cache backend using CyberCache Cluster",
+    "version": "1.3.5-beta",
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "authors": [
+        {
+            "name": "Vadim Sytnikov"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "C3\\": "src/C3"
+        },
+        "classmap": [
+            "src/C3"
+        ],
+        "files": [
+            "registration.php"
+        ]
+    }
+}

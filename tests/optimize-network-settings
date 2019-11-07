@@ -1,0 +1,66 @@
+#! /bin/sh
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+if [ $(id -u) -ne 0 ]; then
+  echo "This command must be run with 'root' privileges"
+  exit 1
+fi
+
+optimize_client_settings() {
+  # increase the ephermal port range (max number of outbound sockets that can be createf from an IP address)
+  sysctl net.ipv4.ip_local_port_range="15000 61000"
+  # decrease min time outbound sockets in TIME_WAIT state (unusable after being used once)
+  sysctl net.ipv4.tcp_fin_timeout=30
+  # allow connections from "used" sockets (those being in wait state)
+  sysctl net.ipv4.tcp_tw_recycle=1
+  sysctl net.ipv4.tcp_tw_reuse=1
+}
+
+optimize_server_settings() {
+  # increase max number of requests queued to a listen socket
+  sysctl net.core.somaxconn=1024
+  # increase max number of packets queued on the input side (when interface receives packets faster than kernel can process them)
+  sysctl net.core.netdev_max_backlog=2000
+  # increase max number of queued connection requests which have still not been acknowledged by the connecting client
+  sysctl net.ipv4.tcp_max_syn_backlog=2048
+}
+
+case "$1" in
+  client)
+    optimize_client_settings
+    ;;
+  server)
+    optimize_server_settings
+    ;;
+  all)
+    optimize_client_settings
+    optimize_server_settings
+    ;;
+  *)
+    echo "Use: optimize-network-settings {client|server|all}"
+    exit 1
+    ;;
+esac
+
+# increase maximum number of open file descriptors; CyberCache server bumps this
+# to 65536 in `/etc/init.d/cybercached` (if enabled in `/etc/default/cybercached`)
+NDESC=65536
+ulimit -n $NDESC
+echo "max open descriptors = $NDESC"
+
+echo "Done."
+exit 0

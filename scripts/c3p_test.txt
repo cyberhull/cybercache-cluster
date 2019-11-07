@@ -1,0 +1,35 @@
+
+CyberCache C3P[VERSION]
+
+Edition is C3P@[Community...@Enterprise,] which is C3P[quite good.|EXCELLENT!]
+
+This is C3P[Community-edition|]C3P[|Enterprise-edition]-only text.
+
+Test various scenarios ("lines" are here to check that extraneous newlines do not slip in):
+
+-----------------
+C3P%[
+  Community-only text (1)
+%
+  Enterprise-only text (1)
+]
+-----------------
+C3P[
+  Community-only text (2)
+|
+]
+-----------------
+C3P~[
+~
+  Enterprise-only text (2)
+]
+-----------------
+C3P[
+|
+]
+-----------------
+
+Edition name = C3P[EDITION]
+Edition acronym = C3P[ED]
+Date = C3P[DATE]
+TS = C3P[TIMESTAMP]
