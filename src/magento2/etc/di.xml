@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * CyberCache Cluster - Magento 2 Extension
+ * Written by Vadim Sytnikov.
+ * Copyright (C) 2016-2019 CyberHULL, Ltd.
+ * All rights reserved.
+ *
+ * Implementation of session store based on CyberCache Cluster.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\Session\SaveHandlerFactory">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="cybercache" xsi:type="string">CyberHULL\CyberCache\C3\Session\CyberCacheSession</item>
+            </argument>
+        </arguments>
+    </type>
+</config>
+
