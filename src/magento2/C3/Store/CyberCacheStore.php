@@ -2,21 +2,14 @@
 /**
  * CyberCache Cluster - Magento 2 Extension
  * Written by Vadim Sytnikov.
- * Copyright (C) 2016-2019 CyberHULL. All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (C) 2016-2019 CyberHULL, Ltd.
+ * All rights reserved.
  * ----------------------------------------------------------------------------
  *
  * Implementation of FPC/default Magento 2 cache store based on CyberCache Cluster.
  */
+
+namespace CyberHULL\CyberCache\C3\Store;
 
 /**
  * Class implementing Zend's `Zend_Cache_Backend_Interface` and
@@ -27,7 +20,7 @@
  * @copyright Copyright (c) 2019 CyberHULL (http://www.cyberhull.com)
  * @author Vadim Sytnikov
  */
-class C3_Store_CyberCacheStore extends Zend_Cache_Backend implements Zend_Cache_Backend_ExtendedInterface
+class CyberCacheStore extends \Zend_Cache_Backend implements \Zend_Cache_Backend_ExtendedInterface
 {
     /**
      * @var $c3_resource resource Handle of the resource that serves as container for CyberCache options.
@@ -110,7 +103,7 @@ class C3_Store_CyberCacheStore extends Zend_Cache_Backend implements Zend_Cache_
      * @param array $tags Optional array of tags (only needed for some modes)
      * @return boolean `true` on success
      */
-    public function clean($mode = Zend_Cache::CLEANING_MODE_ALL, $tags = array())
+    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = array())
     {
         return c3_clean($this->c3_resource, $mode, $tags);
     }
