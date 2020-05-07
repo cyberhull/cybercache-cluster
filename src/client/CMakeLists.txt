@@ -50,12 +50,10 @@ set(EXTENSION_COMMON_LIBRARIES
     ${CMAKE_THREAD_LIBS_INIT})
 
 # PHP APIs against which to build the extension(s): MUST match installed PHP `-dev` packages!
-set(PHP_APIS 20151012 20160303 20170718 20180731)
-foreach(API IN LISTS PHP_APIS)
+include(DiscoverPhpSdks)
+discover_php_sdks(VERSIONS 7.0 7.1 7.2 7.3 REQUIRED)
 
-# Set include directories
-set(PHP_INC_BASE "/usr/include/php/${API}")
-set(PHP_INC_DIRS "${PHP_INC_BASE}" "${PHP_INC_BASE}/main" "${PHP_INC_BASE}/TSRM" "${PHP_INC_BASE}/Zend")
+foreach(API IN LISTS PHP_APIS)
 
 # Community Edition build
 set(CE_LIB "ext_cybercache_ce_${API}")
@@ -65,8 +63,8 @@ set_property(TARGET ${CE_LIB} PROPERTY OUTPUT_NAME "cybercache-ce-${API}")
 set_property(TARGET ${CE_LIB} PROPERTY PREFIX "")
 target_link_libraries(${CE_LIB}
     c3lib_ce
-    ${EXTENSION_COMMON_LIBRARIES})
-target_include_directories(${CE_LIB} PUBLIC ${PHP_INC_DIRS})
+    ${EXTENSION_COMMON_LIBRARIES}
+    ${PHP_LIBRARIES_${API}})
 
 # Enterprise Edition build
 set(EE_LIB "ext_cybercache_ee_${API}")
@@ -77,7 +75,7 @@ set_property(TARGET ${EE_LIB} PROPERTY PREFIX "")
 target_link_libraries(${EE_LIB}
     c3lib_ee
     comp_brotli
-    ${EXTENSION_COMMON_LIBRARIES})
-target_include_directories(${EE_LIB} PUBLIC ${PHP_INC_DIRS})
+    ${EXTENSION_COMMON_LIBRARIES}
+    ${PHP_LIBRARIES_${API}})
 
 endforeach()
