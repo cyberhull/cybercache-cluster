@@ -19,7 +19,7 @@
 namespace CyberCache {
 
 PipelineCommand* PipelineCommand::create(c3_uintptr_t id, domain_t domain, const void* buff, size_t size) {
-  static_assert(C3_OFFSETOF(PipelineCommand, pc_null) == 0, "NULL offset is not zero");
+  c3_assert(C3_OFFSETOF(PipelineCommand, pc_null) == 0); // NULL offset must be zero
   c3_assert(id <= BYTE_MAX_VAL && size <= USHORT_MAX_VAL);
   auto pc = alloc<PipelineCommand>(domain, size + sizeof(PipelineCommand));
   new (pc) PipelineCommand((c3_byte_t) id, domain, (c3_ushort_t) size);
