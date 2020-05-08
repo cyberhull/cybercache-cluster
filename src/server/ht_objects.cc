@@ -301,8 +301,8 @@ c3_uint_t PageObject::po_num_internal_tag_refs = 1;
 PageObject::PageObject(c3_hash_t hash, const char* name, c3_ushort_t nlen):
   PayloadHashObject(hash, HOF_PAYLOAD | HOF_FPC, name, nlen, calculate_size(nlen)) {
 
-  static_assert(C3_OFFSETOF(PageObject, po_xtags) == sizeof(PayloadHashObject),
-    "PageObject::po_tags[] field is not aligned properly");
+  // check if PageObject::po_tags[] field is aligned properly
+  c3_assert(C3_OFFSETOF(PageObject, po_xtags) == sizeof(PayloadHashObject));
 
   PERF_INCREMENT_DOMAIN_COUNTER(FPC, Store_Objects_Created)
   PERF_INCREMENT_DOMAIN_COUNTER(FPC, Store_Objects_Active)
