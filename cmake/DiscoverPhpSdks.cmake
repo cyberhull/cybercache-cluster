@@ -97,14 +97,15 @@ function(_DPS_TEST_PHP_VERSION PHP_VERSION TARGET_VAR API_VAR)
         COMMAND ${${PHP_CONFIG_TOOL_VAR}} --includes
         OUTPUT_VARIABLE INCLUDES
         OUTPUT_STRIP_TRAILING_WHITESPACE)
-    separate_arguments(INCLUDES NATIVE_COMMAND ${INCLUDES})
+    separate_arguments(INCLUDES UNIX_COMMAND "${INCLUDES}")
     # Strip the -I options from includes
     string(REPLACE -I "" INCLUDE_DIRS "${INCLUDES}")
 
     # Create the import library
     set(TARGET PHP::API${API})
     add_library(${TARGET} INTERFACE IMPORTED)
-    target_include_directories(${TARGET} INTERFACE ${INCLUDE_DIRS})
+    set_target_properties(${TARGET} PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${INCLUDE_DIRS}")
 
     set(${TARGET_VAR} ${TARGET} PARENT_SCOPE)
     set(${API_VAR} ${API} PARENT_SCOPE)
