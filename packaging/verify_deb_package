@@ -16,7 +16,18 @@
 #
 
 if [ -n "$1" ]; then
-  lintian --check --suppress-tags-from-file lintian-suppressed-tags.lst "$1"
+  # detect old Lintian versions
+  ACTUAL=$(lintian --version | sed -E 's/.*?v([0-9.]+).*/\1/')
+  GOOD=2.5.50
+  # use sort to order version numbers
+  MIN=$( (echo $ACTUAL; echo $GOOD) | sort -V | head -n1)
+  if [[ $MIN == $GOOD ]]; then
+      SUPPRESS=lintian-suppressed-tags.lst
+  else
+      SUPPRESS=lintian-suppressed-tags-pre-2.5.50.lst
+  fi
+
+  lintian --check --suppress-tags-from-file $SUPPRESS "$1"
   if [ $? -eq 0 ]; then
     echo "Verification complete: no [unsuppressed] errors.";
   else

@@ -44,8 +44,11 @@ To be addressed in the future.
 php-script-but-no-phpX-cli-dep
 ------------------------------
 
-The script in question (`opt/cybercache/stub/generate_api_stub`) is not
-essential, and may never run.
+Lintian versions <2.5.50 insist on depending on a specific version of phpX-cli
+package. This is contrary to what PHP devs recommend, that is, to depend on the
+non-versioned transitional package php-cli. Hence we disable this error.
+Please see
+https://alioth-lists-archive.debian.net/pipermail/pkg-php-maint/2016-March/015201.html
 
 init.d-script-does-not-source-init-functions
 --------------------------------------------

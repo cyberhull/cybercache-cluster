@@ -395,6 +395,7 @@ proc=fpm
   --deb-priority "$C3_PRIORITY" \
   $C3_EDITION_REL_NAME $C3_EDITION_REL_VALUE \
   $C3_EDITION_REC_NAME $C3_EDITION_REC_VALUE \
+  --deb-suggests php-cli \
   --deb-changelog "deb_files/changelog" \
   --deb-upstream-changelog "deb_files/upstream-changelog"
 
