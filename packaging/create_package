@@ -321,6 +321,13 @@ fi
 
 echo "Preparing/converting documentation..."
 
+# check if pandoc supports the -S switch
+if ( echo x | pandoc -S ) &>/dev/null; then
+    PANDOC_FROM_MARKDOWN='-f markdown -S'
+else
+    PANDOC_FROM_MARKDOWN='-f markdown+smart'
+fi
+
 compile_doc() {
   local md_file="$1"
   local man_base_file="$2"
@@ -329,7 +336,7 @@ compile_doc() {
   local ts=date:$(date "+%B %d, %Y")
   local subtitle=header:"$4"
 
-  pandoc --wrap=none -s -f markdown -t man -S \
+  pandoc --wrap=none -s $PANDOC_FROM_MARKDOWN -t man \
     -V author:"Vadim Sytnikov" -V "$ts" -V "$subtitle" -V hyphenate:false \
     -V title:"cybercache" -V section:$man_section -V adjusting:l \
     -V footer:"Copyright (C) 2019 CyberHULL" \
