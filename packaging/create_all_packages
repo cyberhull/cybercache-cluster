@@ -34,6 +34,9 @@ cd ../config
 ./generate_md_cfg
 cd "$PDIR"
 
+# download the Magento 2 extension
+./get_magento2_extension m2_ext_tmp
+
 # create and verify Community Edition DEB and RPM packages
 echo "Creating Community Edition package '$C3_CE_DEB'..."
 ./create_package 'community' 'deb' $C3_VERSION $C3_ITERATION > "$C3_LOG"

@@ -27,15 +27,6 @@ In order to promote CyberCache version, it is necessary to do the following
 
   * Change `version` attrubute in `src/magento1/app/code/community/CH/CyberCacheSession/etc/config.xml` file.
 
-* Change version number in the Magento 2 extension.
-
-  * Change `setup_version` attrubute in `src/magento2/etc/module.xml` file.
-
-  * Change `version` field in `src/magento2/composer.json` file.
-
-  > NOTE: once Magento extension installation script is implemented, the above
-  > changes will be applied automatically by said script.  
-
 * Update `packaging/deb_files/changelog` and `packaging/deb_files/upstream-changelog`
   adding records for new versions; `deb_date` script can be used to generate
   timestamps in the format required by Debian changelogs (hint: you can use
