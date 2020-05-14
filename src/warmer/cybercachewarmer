@@ -19,7 +19,7 @@
 PJS=$(which phantomjs)
 if [[ -z "$PJS" ]]; then
   echo "CyberCache Warmer requires PhantomJS to run."
-  echo "Please install it (`sudo apt install phantomjs` on Ubuntu-based distributions) and try again."
+  echo "Please install it ('sudo apt install phantomjs' on Ubuntu-based distributions) and try again."
   exit 1
 fi
 
