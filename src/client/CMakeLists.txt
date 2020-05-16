@@ -19,6 +19,8 @@
 
 project(CyberCacheExtension)
 
+find_package(PHP REQUIRED)
+
 # set this to "-DZTS -DPTHREADS" to enable thread safety
 set(PHP_THREAD_SAFETY_SWITCH "")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PHP_THREAD_SAFETY_SWITCH}")
@@ -49,33 +51,25 @@ set(EXTENSION_COMMON_LIBRARIES
     hash_xxhash
     ${CMAKE_THREAD_LIBS_INIT})
 
-# PHP APIs against which to build the extension(s): MUST match installed PHP `-dev` packages!
-include(DiscoverPhpSdks)
-discover_php_sdks(VERSIONS 7.0 7.1 7.2 7.3 REQUIRED)
-
-foreach(API IN LISTS PHP_APIS)
-
 # Community Edition build
-set(CE_LIB "ext_cybercache_ce_${API}")
+set(CE_LIB "ext_cybercache_ce")
 add_library(${CE_LIB} SHARED
     ${EXTENSION_SOURCE_FILES})
-set_property(TARGET ${CE_LIB} PROPERTY OUTPUT_NAME "cybercache-ce-${API}")
+set_property(TARGET ${CE_LIB} PROPERTY OUTPUT_NAME "cybercache-ce")
 set_property(TARGET ${CE_LIB} PROPERTY PREFIX "")
 target_link_libraries(${CE_LIB}
     c3lib_ce
     ${EXTENSION_COMMON_LIBRARIES}
-    ${PHP_LIBRARIES_${API}})
+    PHP::PHP)
 
 # Enterprise Edition build
-set(EE_LIB "ext_cybercache_ee_${API}")
+set(EE_LIB "ext_cybercache_ee")
 add_library(${EE_LIB} SHARED
     ${EXTENSION_SOURCE_FILES})
-set_property(TARGET ${EE_LIB} PROPERTY OUTPUT_NAME "cybercache-ee-${API}")
+set_property(TARGET ${EE_LIB} PROPERTY OUTPUT_NAME "cybercache-ee")
 set_property(TARGET ${EE_LIB} PROPERTY PREFIX "")
 target_link_libraries(${EE_LIB}
     c3lib_ee
     comp_brotli
     ${EXTENSION_COMMON_LIBRARIES}
-    ${PHP_LIBRARIES_${API}})
-
-endforeach()
+    PHP::PHP)

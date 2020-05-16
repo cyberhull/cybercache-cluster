@@ -18,6 +18,9 @@
 # associative array mapping files to be included (package contents) to locations within temporary directory
 declare -A C3_EDITION_FILES
 
+php_ver=$(php-config --version | cut -d. -f1,2)
+php_api_ver=$(php-config --phpapi)
+
 # process package edition argument
 case "$1" in
   community)
@@ -30,10 +33,7 @@ case "$1" in
     C3_EDITION_REC_VALUE='bogus-pattern-that-we-know-will-match-no-files'
     C3_EDITION_FILES["../build/bin/cybercache-ce"]="usr/bin/cybercache"
     C3_EDITION_FILES["../build/bin/cybercached-ce"]="usr/bin/cybercached-ce"
-    C3_EDITION_FILES["../build/lib/cybercache-ce-20151012.so"]="usr/lib/php/20151012/cybercache.so"
-    C3_EDITION_FILES["../build/lib/cybercache-ce-20160303.so"]="usr/lib/php/20160303/cybercache.so"
-    C3_EDITION_FILES["../build/lib/cybercache-ce-20170718.so"]="usr/lib/php/20170718/cybercache.so"
-    C3_EDITION_FILES["../build/lib/cybercache-ce-20180731.so"]="usr/lib/php/20180731/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ce.so"]="usr/lib/php/$php_api_ver/cybercache.so"
     C3_EDITION_DESC=""
     ;;
   enterprise)
@@ -47,10 +47,7 @@ case "$1" in
     C3_EDITION_FILES["../build/bin/cybercache-ee"]="usr/bin/cybercache"
     C3_EDITION_FILES["../build/bin/cybercached-ee"]="usr/bin/cybercached-ee"
     C3_EDITION_FILES["../build/bin/cybercached-iee"]="usr/bin/cybercached-iee"
-    C3_EDITION_FILES["../build/lib/cybercache-ee-20151012.so"]="usr/lib/php/20151012/cybercache.so"
-    C3_EDITION_FILES["../build/lib/cybercache-ee-20160303.so"]="usr/lib/php/20160303/cybercache.so"
-    C3_EDITION_FILES["../build/lib/cybercache-ee-20170718.so"]="usr/lib/php/20170718/cybercache.so"
-    C3_EDITION_FILES["../build/lib/cybercache-ee-20180731.so"]="usr/lib/php/20180731/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache-ee.so"]="usr/lib/php/$php_api_ver/cybercache.so"
     C3_EDITION_FILES["app/switch-server-version"]="opt/cybercache/bin/switch-server-version"
     C3_EDITION_DESC="
 
@@ -114,10 +111,7 @@ declare -A C3_FILES
 C3_FILES["../config/${C3_EDITION}/cybercached.cfg"]="etc/cybercache"
 C3_FILES["files/default/cybercached"]="etc/default"
 C3_FILES["files/init.d/cybercached"]="etc/init.d"
-C3_FILES["files/php-ini/7.0/cybercache.ini"]="etc/php/7.0/mods-available"
-C3_FILES["files/php-ini/7.1/cybercache.ini"]="etc/php/7.1/mods-available"
-C3_FILES["files/php-ini/7.2/cybercache.ini"]="etc/php/7.2/mods-available"
-C3_FILES["files/php-ini/7.3/cybercache.ini"]="etc/php/7.3/mods-available"
+C3_FILES["files/php-ini/cybercache.ini"]="etc/php/$php_ver/mods-available"
 C3_FILES["app/README.md.c3p"]="opt/cybercache"
 C3_FILES["app/check-cybercached"]="opt/cybercache/bin"
 C3_FILES["app/ping-cybercached"]="opt/cybercache/bin"
@@ -291,14 +285,12 @@ for d in "${C3_DIRS[@]}"; do
   fi
 done
 
-for php_api_ver in "20151012" "20160303" "20170718" "20180731"; do
-  so_file="$C3_TMP/usr/lib/php/$php_api_ver/cybercache.so"
-  chmod a-x $so_file
-  if [ $? -ne 0 ]; then
-    echo "ERROR: could not make '$so_file' non-executable"
-    exit 1
-  fi
-done
+so_file="$C3_TMP/usr/lib/php/$php_api_ver/cybercache.so"
+chmod a-x $so_file
+if [ $? -ne 0 ]; then
+echo "ERROR: could not make '$so_file' non-executable"
+exit 1
+fi
 
 echo "Preparing/converting documentation..."
 
