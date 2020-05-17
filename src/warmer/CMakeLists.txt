@@ -1,6 +1,5 @@
-#! /bin/bash
-#
-# This file is a part of the implementation of the CyberCache Cluster.
+
+# CyberCache Cluster
 # Written by Vadim Sytnikov.
 # Copyright (C) 2016-2019 CyberHULL. All rights reserved.
 #
@@ -13,16 +12,23 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
+# -----------------------------------------------------------------------------
+#
+# CyberCache warmer.
 #
 
-# check that PhantomJS is installed
-PJS=$(which phantomjs)
-if [[ -z "$PJS" ]]; then
-  echo "CyberCache Warmer requires PhantomJS to run."
-  echo "Please install it ('sudo apt install phantomjs' on Ubuntu-based distributions) and try again."
-  exit 1
-fi
+if(NOT C3_EDITION STREQUAL enterprise)
+    return()
+endif()
 
-COOKIES=/tmp/cybercache-warmer-cookies.txt
-SCRIPTDIR=$(cd "$(dirname "$0")" && pwd)
-$PJS --cookies-file="$COOKIES" $SCRIPTDIR/../lib/cybercache/warmer/warmer.js "$@"
+install(PROGRAMS cybercachewarmer DESTINATION bin)
+
+c3_install(
+    FILES
+        warmer.js
+        c3logger.js
+        c3options.js
+        c3processor.js
+        c3urls.js
+        c3version.js.c3p
+    DESTINATION lib/cybercache/warmer)

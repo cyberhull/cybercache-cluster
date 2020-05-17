@@ -15,14 +15,25 @@
 # GNU General Public License for more details.
 #
 
-# check that PhantomJS is installed
-PJS=$(which phantomjs)
-if [[ -z "$PJS" ]]; then
-  echo "CyberCache Warmer requires PhantomJS to run."
-  echo "Please install it ('sudo apt install phantomjs' on Ubuntu-based distributions) and try again."
-  exit 1
+md_file="$1"
+man_file="$2"
+man_section="$3"
+ts=date:$(date "+%B %d, %Y")
+subtitle=header:"$4"
+
+# check if pandoc supports the -S switch
+if echo x | pandoc -S &>/dev/null; then
+  from_markdown='-f markdown -S'
+else
+  from_markdown='-f markdown+smart'
 fi
 
-COOKIES=/tmp/cybercache-warmer-cookies.txt
-SCRIPTDIR=$(cd "$(dirname "$0")" && pwd)
-$PJS --cookies-file="$COOKIES" $SCRIPTDIR/../lib/cybercache/warmer/warmer.js "$@"
+pandoc --wrap=none -s $from_markdown -t man \
+  -V author:"Vadim Sytnikov" -V "$ts" -V "$subtitle" -V hyphenate:false \
+  -V title:"cybercache" -V section:$man_section -V adjusting:l \
+  -V footer:"Copyright (C) 2019 CyberHULL" \
+  -o "$man_file" "$md_file"
+if [ $? -ne 0 ]; then
+  echo "ERROR: could not convert '$md_file' to '$man_file'"
+  exit 1
+fi

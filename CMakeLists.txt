@@ -24,6 +24,8 @@ set(C3_COMMON_FLAGS "-Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C3_COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${C3_COMMON_FLAGS} -std=c++14")
 
+set(SCRIPT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
+
 # figure out target environment
 if (CYGWIN)
   message(STATUS "Building for Cygwin...")
@@ -33,13 +35,24 @@ else ()
   find_package(Threads)
 endif (CYGWIN)
 
-message(STATUS "CyberCache ${C3_EDITION}")
+# extract CyberCache version into C3_VERSION
+execute_process(
+    COMMAND /bin/bash -c "echo C3P[VERSION] | ${SCRIPT_DIR}/c3p"
+    OUTPUT_VARIABLE C3_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+message(STATUS "CyberCache ${C3_EDITION} version ${C3_VERSION}")
+
+include(AddManual)
 include(C3Install)
 
 include_directories(lib)
 include_directories(lib/compression/brotli/include)
 
+add_subdirectory(config)
+add_subdirectory(doc)
+add_subdirectory(packaging)
+add_subdirectory(tests)
 add_subdirectory(lib/c3lib)
 add_subdirectory(lib/compression/brotli)
 add_subdirectory(lib/compression/lz4)
@@ -60,5 +73,6 @@ add_subdirectory(src/utils/regexp)
 add_subdirectory(src/client)
 add_subdirectory(src/console)
 add_subdirectory(src/server)
+add_subdirectory(src/warmer)
 
 c3_install(LICENSES GPL_v2.txt LICENSE.md)
