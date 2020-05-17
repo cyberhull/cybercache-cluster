@@ -66,26 +66,36 @@ set(SERVER_COMMON_LIBRARIES
     hash_xxhash
     ${CMAKE_THREAD_LIBS_INIT})
 
-# Community Edition build
-add_executable(cybercached_ce ${SERVER_SOURCE_FILES})
-set_property(TARGET cybercached_ce PROPERTY OUTPUT_NAME cybercached-ce)
-target_link_libraries(cybercached_ce
-    c3lib_ce
-    ${SERVER_COMMON_LIBRARIES})
+if(C3_EDITION STREQUAL community)
 
-# Enterprise Edition build
-add_executable(cybercached_ee ${SERVER_SOURCE_FILES})
-set_property(TARGET cybercached_ee PROPERTY OUTPUT_NAME cybercached-ee)
-target_link_libraries(cybercached_ee
-    c3lib_ee
-    comp_brotli
-    ${SERVER_COMMON_LIBRARIES})
+    # Community Edition build
+    add_executable(cybercached_ce ${SERVER_SOURCE_FILES})
+    set_property(TARGET cybercached_ce PROPERTY OUTPUT_NAME cybercached-ce)
+    target_link_libraries(cybercached_ce
+        c3lib_ce
+        ${SERVER_COMMON_LIBRARIES})
 
-# Instrumented Enterprise Edition build
-add_executable(cybercached_iee ${SERVER_SOURCE_FILES})
-set_property(TARGET cybercached_iee PROPERTY OUTPUT_NAME cybercached-iee)
-target_link_libraries(cybercached_iee
-    c3lib_iee
-    comp_brotli
-    ${SERVER_COMMON_LIBRARIES})
-target_compile_definitions(cybercached_iee PRIVATE C3LM_ENABLED=1)
+elseif(C3_EDITION STREQUAL enterprise)
+
+    # Enterprise Edition build
+    add_executable(cybercached_ee ${SERVER_SOURCE_FILES})
+    set_property(TARGET cybercached_ee PROPERTY OUTPUT_NAME cybercached-ee)
+    target_link_libraries(cybercached_ee
+        c3lib_ee
+        comp_brotli
+        ${SERVER_COMMON_LIBRARIES})
+
+    # Instrumented Enterprise Edition build
+    add_executable(cybercached_iee ${SERVER_SOURCE_FILES})
+    set_property(TARGET cybercached_iee PROPERTY OUTPUT_NAME cybercached-iee)
+    target_link_libraries(cybercached_iee
+        c3lib_iee
+        comp_brotli
+        ${SERVER_COMMON_LIBRARIES})
+    target_compile_definitions(cybercached_iee PRIVATE C3LM_ENABLED=1)
+
+else()
+
+    message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
+
+endif()

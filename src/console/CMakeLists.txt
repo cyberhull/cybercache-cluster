@@ -44,17 +44,25 @@ set(CONSOLE_COMMON_LIBRARIES
     hash_xxhash
     ${CMAKE_THREAD_LIBS_INIT})
 
-# Community Edition build
-add_executable(cybercache_ce ${CONSOLE_SOURCE_FILES})
-set_property(TARGET cybercache_ce PROPERTY OUTPUT_NAME cybercache-ce)
-target_link_libraries(cybercache_ce
-    c3lib_ce
-    ${CONSOLE_COMMON_LIBRARIES})
+if(C3_EDITION STREQUAL community)
 
-# Enterprise Edition build
-add_executable(cybercache_ee ${CONSOLE_SOURCE_FILES})
-set_property(TARGET cybercache_ee PROPERTY OUTPUT_NAME cybercache-ee)
-target_link_libraries(cybercache_ee
-    c3lib_ee
-    comp_brotli
-    ${CONSOLE_COMMON_LIBRARIES})
+    # Community Edition build
+    add_executable(cybercache ${CONSOLE_SOURCE_FILES})
+    target_link_libraries(cybercache
+        c3lib_ce
+        ${CONSOLE_COMMON_LIBRARIES})
+
+elseif(C3_EDITION STREQUAL enterprise)
+
+    # Enterprise Edition build
+    add_executable(cybercache ${CONSOLE_SOURCE_FILES})
+    target_link_libraries(cybercache
+        c3lib_ee
+        comp_brotli
+        ${CONSOLE_COMMON_LIBRARIES})
+
+else()
+
+    message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
+
+endif()

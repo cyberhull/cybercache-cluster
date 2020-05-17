@@ -8,6 +8,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(CyberCacheCluster)
 
+set(C3_EDITION community CACHE STRING
+    "Edition of CyberCache to build. One of community or enterprise")
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 set(CMAKE_C_OUTPUT_EXTENSION ".o")
@@ -29,6 +32,8 @@ else ()
   message(STATUS "Building for Linux...")
   find_package(Threads)
 endif (CYGWIN)
+
+message(STATUS "CyberCache ${C3_EDITION}")
 
 include_directories(lib)
 include_directories(lib/compression/brotli/include)

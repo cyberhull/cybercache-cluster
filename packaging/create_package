@@ -31,9 +31,9 @@ case "$1" in
     C3_EDITION_REL_VALUE='cybercache-ee'
     C3_EDITION_REC_NAME='--exclude'
     C3_EDITION_REC_VALUE='bogus-pattern-that-we-know-will-match-no-files'
-    C3_EDITION_FILES["../build/bin/cybercache-ce"]="usr/bin/cybercache"
+    C3_EDITION_FILES["../build/bin/cybercache"]="usr/bin/cybercache"
     C3_EDITION_FILES["../build/bin/cybercached-ce"]="usr/bin/cybercached-ce"
-    C3_EDITION_FILES["../build/lib/cybercache-ce.so"]="usr/lib/php/$php_api_ver/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache.so"]="usr/lib/php/$php_api_ver/cybercache.so"
     C3_EDITION_DESC=""
     ;;
   enterprise)
@@ -44,10 +44,10 @@ case "$1" in
     C3_EDITION_REL_VALUE='cybercache-ce'
     C3_EDITION_REC_NAME='--deb-recommends'
     C3_EDITION_REC_VALUE='phantomjs'
-    C3_EDITION_FILES["../build/bin/cybercache-ee"]="usr/bin/cybercache"
+    C3_EDITION_FILES["../build/bin/cybercache"]="usr/bin/cybercache"
     C3_EDITION_FILES["../build/bin/cybercached-ee"]="usr/bin/cybercached-ee"
     C3_EDITION_FILES["../build/bin/cybercached-iee"]="usr/bin/cybercached-iee"
-    C3_EDITION_FILES["../build/lib/cybercache-ee.so"]="usr/lib/php/$php_api_ver/cybercache.so"
+    C3_EDITION_FILES["../build/lib/cybercache.so"]="usr/lib/php/$php_api_ver/cybercache.so"
     C3_EDITION_FILES["app/switch-server-version"]="opt/cybercache/bin/switch-server-version"
     C3_EDITION_DESC="
 
@@ -83,6 +83,7 @@ if [[ "$WRONG_ARGUMENT" != "" || "$#" -ne 4 ]]; then
 fi
 
 # get passed version info
+C3_EDITION_LONG="$1"
 C3_VERSION="$3"
 C3_ITERATION="$4"
 
@@ -91,6 +92,13 @@ if [ -x $(which fpm) ]; then
   echo "CyberCache Package Creator"
 else
   echo "ERROR: FPM package not installed"
+fi
+
+# make sure that the requested version is built
+echo "Building ${C3_EDITION_LONG} edition..."
+if ! (cd ../build && cmake -DC3_EDITION=${C3_EDITION_LONG} .. && cmake --build .); then
+  echo "ERROR: Failed to build ${C3_EDITION_LONG} edition"
+  exit 1
 fi
 
 # directory in which all package files are to be collected

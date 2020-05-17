@@ -21,5 +21,12 @@ set(SOURCE_FILES
 
 add_executable(epoll ${SOURCE_FILES})
 
-target_link_libraries(epoll
-  c3lib_ce)
+if(C3_EDITION STREQUAL community)
+  target_link_libraries(epoll
+    c3lib_ce)
+elseif(C3_EDITION STREQUAL enterprise)
+  target_link_libraries(epoll
+    c3lib_ee)
+else()
+  message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
+endif()

@@ -51,25 +51,35 @@ set(EXTENSION_COMMON_LIBRARIES
     hash_xxhash
     ${CMAKE_THREAD_LIBS_INIT})
 
-# Community Edition build
-set(CE_LIB "ext_cybercache_ce")
-add_library(${CE_LIB} SHARED
-    ${EXTENSION_SOURCE_FILES})
-set_property(TARGET ${CE_LIB} PROPERTY OUTPUT_NAME "cybercache-ce")
-set_property(TARGET ${CE_LIB} PROPERTY PREFIX "")
-target_link_libraries(${CE_LIB}
-    c3lib_ce
-    ${EXTENSION_COMMON_LIBRARIES}
-    PHP::PHP)
+set(LIB "ext_cybercache")
 
-# Enterprise Edition build
-set(EE_LIB "ext_cybercache_ee")
-add_library(${EE_LIB} SHARED
-    ${EXTENSION_SOURCE_FILES})
-set_property(TARGET ${EE_LIB} PROPERTY OUTPUT_NAME "cybercache-ee")
-set_property(TARGET ${EE_LIB} PROPERTY PREFIX "")
-target_link_libraries(${EE_LIB}
-    c3lib_ee
-    comp_brotli
-    ${EXTENSION_COMMON_LIBRARIES}
-    PHP::PHP)
+if(C3_EDITION STREQUAL community)
+
+    # Community Edition build
+    add_library(${LIB} SHARED
+        ${EXTENSION_SOURCE_FILES})
+    set_property(TARGET ${LIB} PROPERTY OUTPUT_NAME "cybercache")
+    set_property(TARGET ${LIB} PROPERTY PREFIX "")
+    target_link_libraries(${LIB}
+        c3lib_ce
+        ${EXTENSION_COMMON_LIBRARIES}
+        PHP::PHP)
+
+elseif(C3_EDITION STREQUAL enterprise)
+
+    # Enterprise Edition build
+    add_library(${LIB} SHARED
+        ${EXTENSION_SOURCE_FILES})
+    set_property(TARGET ${LIB} PROPERTY OUTPUT_NAME "cybercache")
+    set_property(TARGET ${LIB} PROPERTY PREFIX "")
+    target_link_libraries(${LIB}
+        c3lib_ee
+        comp_brotli
+        ${EXTENSION_COMMON_LIBRARIES}
+        PHP::PHP)
+
+else()
+
+    message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
+
+endif()

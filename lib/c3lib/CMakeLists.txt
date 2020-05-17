@@ -72,25 +72,35 @@ set(C3LIB_COMMON_SOURCES
 set(C3LIB_ENTERPRISE_SOURCES
     compressors/engine_brotli.cc compressors/engine_brotli.h)
 
-# Community Edition build
-add_library(c3lib_ce
-  ${C3LIB_COMMON_SOURCES})
-target_compile_definitions(c3lib_ce PUBLIC C3_FASTER=1)
-target_compile_options(c3lib_ce PUBLIC -O2)
-target_link_libraries(c3lib_ce PUBLIC -s -O)
+if(C3_EDITION STREQUAL community)
 
-# Enterprise Edition build
-add_library(c3lib_ee
-  ${C3LIB_COMMON_SOURCES}
-  ${C3LIB_ENTERPRISE_SOURCES})
-target_compile_definitions(c3lib_ee PUBLIC C3_FASTEST=1 C3_ENTERPRISE=1)
-target_compile_options(c3lib_ee PUBLIC -O3)
-target_link_libraries(c3lib_ee PUBLIC -s -O)
+  # Community Edition build
+  add_library(c3lib_ce
+    ${C3LIB_COMMON_SOURCES})
+  target_compile_definitions(c3lib_ce PUBLIC C3_FASTER=1)
+  target_compile_options(c3lib_ce PUBLIC -O2)
+  target_link_libraries(c3lib_ce PUBLIC -s -O)
 
-# Instrumented Enterprise Edition build
-add_library(c3lib_iee
-    c3_profiler.cc c3_profiler.h c3_profiler_defs.cc c3_profiler_defs.h
+elseif(C3_EDITION STREQUAL enterprise)
+
+  # Enterprise Edition build
+  add_library(c3lib_ee
     ${C3LIB_COMMON_SOURCES}
     ${C3LIB_ENTERPRISE_SOURCES})
-target_compile_definitions(c3lib_iee PUBLIC C3_SAFEST=1 C3_ENTERPRISE=1 C3_INSTRUMENTED=1)
-target_compile_options(c3lib_iee PUBLIC -g -Og -rdynamic -funwind-tables)
+  target_compile_definitions(c3lib_ee PUBLIC C3_FASTEST=1 C3_ENTERPRISE=1)
+  target_compile_options(c3lib_ee PUBLIC -O3)
+  target_link_libraries(c3lib_ee PUBLIC -s -O)
+
+  # Instrumented Enterprise Edition build
+  add_library(c3lib_iee
+      c3_profiler.cc c3_profiler.h c3_profiler_defs.cc c3_profiler_defs.h
+      ${C3LIB_COMMON_SOURCES}
+      ${C3LIB_ENTERPRISE_SOURCES})
+  target_compile_definitions(c3lib_iee PUBLIC C3_SAFEST=1 C3_ENTERPRISE=1 C3_INSTRUMENTED=1)
+  target_compile_options(c3lib_iee PUBLIC -g -Og -rdynamic -funwind-tables)
+
+else()
+
+  message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
+
+endif()
