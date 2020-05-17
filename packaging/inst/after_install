@@ -33,6 +33,24 @@ for php_mode in "cli" "cgi" "fpm" "apache2"; do
   done
 done
 
+# generate API stubs
+C3_STUB_DIR=/opt/cybercache/stub
+C3_STUB_PHP_DIR=$C3_STUB_DIR/stubs/cybercache
+API_INFO_FILE=$(tempfile)
+API_INFO_SCRIPT=$C3_STUB_DIR/generate_api_info
+API_STUB_SCRIPT=$C3_STUB_DIR/generate_api_stub
+$API_INFO_SCRIPT $API_INFO_FILE
+if [ $? -ne 0 ]; then
+  echo "ERROR: could not generate API info file '$API_INFO_FILE'"
+  exit 1
+fi
+API_STUB_FILE=$C3_STUB_PHP_DIR/cybercache.php
+$API_STUB_SCRIPT $API_INFO_FILE $API_STUB_FILE
+if [ $? -ne 0 ]; then
+  echo "ERROR: could not generate API stub file '$API_STUB_FILE'"
+  exit 1
+fi
+
 # create symlink to default (for the edition) server version
 if [ -x "/usr/bin/cybercached-ee" ]; then
   ln -sf /usr/bin/cybercached-ee /usr/bin/cybercached

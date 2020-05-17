@@ -300,26 +300,6 @@ for php_api_ver in "20151012" "20160303" "20170718" "20180731"; do
   fi
 done
 
-echo "Generating API stub..."
-
-API_INFO_FILE="/tmp/cybercache-api-info-file.txt"
-$API_INFO_SCRIPT $API_INFO_FILE
-if [ $? -ne 0 ]; then
-  echo "ERROR: could not generate API info file '$API_INFO_FILE'"
-  exit 1
-fi
-API_STUB_FILE=$C3_TMP/$C3_STUB_PHP_DIR/cybercache.php
-$API_STUB_SCRIPT $API_INFO_FILE $API_STUB_FILE
-if [ $? -ne 0 ]; then
-  API_STUB_FALLBACK='stubs/cybercache.php'
-  echo "WARNING: could not generate API stub file '$API_STUB_FILE', using fallback file '$API_STUB_FALLBACK'"
-  cp $API_STUB_FALLBACK $API_STUB_FILE
-  if [ $? -ne 0 ]; then
-    echo "ERROR: could not copy '$API_STUB_FALLBACK'"
-    exit 1
-  fi
-fi
-
 echo "Preparing/converting documentation..."
 
 # check if pandoc supports the -S switch
@@ -396,7 +376,7 @@ proc=fpm
   --deb-priority "$C3_PRIORITY" \
   $C3_EDITION_REL_NAME $C3_EDITION_REL_VALUE \
   $C3_EDITION_REC_NAME $C3_EDITION_REC_VALUE \
-  --deb-suggests php-cli \
+  --depends php-cli \
   --deb-changelog "deb_files/changelog" \
   --deb-upstream-changelog "deb_files/upstream-changelog"
 
