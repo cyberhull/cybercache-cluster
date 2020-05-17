@@ -22,3 +22,5 @@ add_library(hash_murmurhash
 
 target_compile_definitions(hash_murmurhash PRIVATE NDEBUG=1)
 target_compile_options(hash_murmurhash PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION murmurhash)

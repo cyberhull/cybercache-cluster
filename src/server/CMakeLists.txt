@@ -75,6 +75,8 @@ if(C3_EDITION STREQUAL community)
         c3lib_ce
         ${SERVER_COMMON_LIBRARIES})
 
+    install(TARGETS cybercached_ce RUNTIME DESTINATION bin)
+
 elseif(C3_EDITION STREQUAL enterprise)
 
     # Enterprise Edition build
@@ -94,8 +96,13 @@ elseif(C3_EDITION STREQUAL enterprise)
         ${SERVER_COMMON_LIBRARIES})
     target_compile_definitions(cybercached_iee PRIVATE C3LM_ENABLED=1)
 
+    install(TARGETS cybercached_ee cybercached_iee RUNTIME DESTINATION bin)
+
 else()
 
     message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
 
 endif()
+
+install(DIRECTORY DESTINATION var/lib/cybercache)
+install(DIRECTORY DESTINATION var/log/cybercache)

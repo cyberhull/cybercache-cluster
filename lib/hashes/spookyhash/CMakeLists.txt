@@ -20,3 +20,5 @@ add_library(hash_spookyhash
 
 target_compile_definitions(hash_spookyhash PRIVATE NDEBUG=1)
 target_compile_options(hash_spookyhash PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION spookyhash)

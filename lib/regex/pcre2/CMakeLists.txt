@@ -49,3 +49,5 @@ add_library(regex_pcre2
 
 target_compile_definitions(regex_pcre2 PRIVATE NDEBUG=1)
 target_compile_options(regex_pcre2 PRIVATE -O3 -Wno-maybe-uninitialized)
+
+c3_install(LICENSES LICENCE DESTINATION pcre2)

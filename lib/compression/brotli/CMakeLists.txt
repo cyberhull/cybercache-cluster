@@ -43,3 +43,5 @@ add_library(comp_brotli
 
 target_compile_definitions(comp_brotli PRIVATE NDEBUG=1)
 target_compile_options(comp_brotli PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION brotli)

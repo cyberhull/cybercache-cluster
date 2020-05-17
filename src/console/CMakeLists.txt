@@ -66,3 +66,5 @@ else()
     message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
 
 endif()
+
+install(TARGETS cybercache RUNTIME DESTINATION bin)

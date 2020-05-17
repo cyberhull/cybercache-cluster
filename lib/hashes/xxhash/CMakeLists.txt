@@ -20,3 +20,5 @@ add_library(hash_xxhash
 
 target_compile_definitions(hash_xxhash PRIVATE NDEBUG=1)
 target_compile_options(hash_xxhash PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION xxhash)

@@ -46,3 +46,5 @@ add_library(comp_lzham
 
 target_compile_definitions(comp_lzham PRIVATE NDEBUG=1)
 target_compile_options(comp_lzham PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION lzham)

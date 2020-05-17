@@ -37,3 +37,5 @@ add_library(comp_zlib
 
 target_compile_definitions(comp_zlib PRIVATE NDEBUG=1)
 target_compile_options(comp_zlib PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION zlib)

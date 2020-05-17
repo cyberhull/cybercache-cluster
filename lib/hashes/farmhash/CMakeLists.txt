@@ -20,3 +20,5 @@ add_library(hash_farmhash
 
 target_compile_definitions(hash_farmhash PRIVATE NDEBUG=1)
 target_compile_options(hash_farmhash PRIVATE -O3)
+
+c3_install(LICENSES COPYING DESTINATION farmhash)

@@ -83,3 +83,7 @@ else()
     message(FATAL_ERROR "Unsupported edition '${C3_EDITION}'")
 
 endif()
+
+install(TARGETS ext_cybercache LIBRARY DESTINATION lib/php/${PHP_API})
+install(PROGRAMS generate_api_info generate_api_stub
+    DESTINATION lib/cybercache/stub)

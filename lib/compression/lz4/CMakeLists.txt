@@ -20,3 +20,5 @@ add_library(comp_lz4
 
 target_compile_definitions(comp_lz4 PRIVATE NDEBUG=1)
 target_compile_options(comp_lz4 PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION lz4)

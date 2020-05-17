@@ -21,3 +21,5 @@ add_library(comp_lzf
 
 target_compile_definitions(comp_lzf PRIVATE NDEBUG=1)
 target_compile_options(comp_lzf PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION lzf)

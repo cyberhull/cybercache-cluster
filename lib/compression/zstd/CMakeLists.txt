@@ -30,3 +30,5 @@ add_library(comp_zstd
 
 target_compile_definitions(comp_zstd PRIVATE NDEBUG=1)
 target_compile_options(comp_zstd PRIVATE -O3)
+
+c3_install(LICENSES LICENSE DESTINATION zstd)

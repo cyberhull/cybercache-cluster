@@ -35,6 +35,8 @@ endif (CYGWIN)
 
 message(STATUS "CyberCache ${C3_EDITION}")
 
+include(C3Install)
+
 include_directories(lib)
 include_directories(lib/compression/brotli/include)
 
@@ -58,3 +60,5 @@ add_subdirectory(src/utils/regexp)
 add_subdirectory(src/client)
 add_subdirectory(src/console)
 add_subdirectory(src/server)
+
+c3_install(LICENSES GPL_v2.txt LICENSE.md)
