@@ -32,7 +32,7 @@ namespace CyberCache {
 
 #define C3_VERSION_MAJOR 1 // protocol change or other such major changes
 #define C3_VERSION_MINOR 3 // feature set change, performance improvements, etc.
-#define C3_VERSION_PATCH 5 // bug fixes and other minor changes
+#define C3_VERSION_PATCH 6 // bug fixes and other minor changes
 
 #define C3_VERSION_STRING C3_STRINGIFY(C3_VERSION_MAJOR) "." \
   C3_STRINGIFY(C3_VERSION_MINOR) "." C3_STRINGIFY(C3_VERSION_PATCH)
