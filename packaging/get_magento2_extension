@@ -29,8 +29,7 @@ if [[ -a $EXT_TMP && ! -d $EXT_TMP ]]; then
 fi
 
 # source product version from scripts/c3p.cfg
-CFG=$(dirname "${BASH_SOURCE[0]}")/../scripts/c3p.cfg
-VERSION=$(cat "$CFG" | sed -E -e '/VERSION/!d' -e "s/^.*'(.*)'.*$/\1/")
+VERSION=$(echo C3P[VERSION] | ../scripts/c3p)
 VERSION_RE=${VERSION//./\\.}
 VERSION_RE=^${VERSION_RE%.*}..*
 
