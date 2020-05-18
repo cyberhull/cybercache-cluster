@@ -15,3 +15,7 @@ On rare occasions when it's necessary to increment package *iteration* number
 (say, after making changes to DEB meta-data) w/o affecting server etc. numbers,
 it's necessary to modify `C3_ITERATION` variable in the `create_all_packages`
 script; iteration number is not pulled from the configuration file yet.
+
+When a Debian source package is required, it should be built using the
+`create_source_package` command. Note that it requires that the `debian`
+directory with appropriate contents is present in the root of the project.
