@@ -1,0 +1,9 @@
+usr/bin/
+usr/etc/cybercache/             etc
+usr/etc/default/                etc
+usr/etc/init.d/                 etc
+usr/lib/cybercache/README.md
+usr/lib/cybercache/*-cybercached
+usr/lib/cybercache/tests/
+usr/share/man/
+usr/var/                        .

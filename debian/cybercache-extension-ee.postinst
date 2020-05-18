@@ -1,0 +1,62 @@
+#! /bin/sh
+#
+# This file is a part of the implementation of the CyberCache Cluster.
+# Written by Vadim Sytnikov.
+# Copyright (C) 2016-2019 CyberHULL. All rights reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+
+set -eu
+
+php_ver=$(php --version | sed -E -e '/^PHP/!d' -e 's/^PHP ([0-9]+\.[0-9]+).*$/\1/')
+
+# make extension available to PHP subsystems
+for php_mode in "cli" "cgi" "fpm" "apache2"; do
+  if [ -d "/etc/php/$php_ver/$php_mode/conf.d" ]; then
+    ln -sf /etc/php/$php_ver/mods-available/cybercache.ini /etc/php/$php_ver/$php_mode/conf.d/20-cybercache.ini
+  fi
+done
+
+# generate API stubs
+C3_STUB_DIR=/usr/lib/cybercache/stub
+C3_STUB_PHP_DIR=$C3_STUB_DIR/stubs/cybercache
+API_INFO_FILE=$(tempfile)
+API_INFO_SCRIPT=$C3_STUB_DIR/generate_api_info
+API_STUB_SCRIPT=$C3_STUB_DIR/generate_api_stub
+$API_INFO_SCRIPT $API_INFO_FILE
+if [ $? -ne 0 ]; then
+  echo "ERROR: could not generate API info file '$API_INFO_FILE'"
+  exit 1
+fi
+API_STUB_FILE=$C3_STUB_PHP_DIR/cybercache.php
+$API_STUB_SCRIPT $API_INFO_FILE $API_STUB_FILE
+if [ $? -ne 0 ]; then
+  echo "ERROR: could not generate API stub file '$API_STUB_FILE'"
+  exit 1
+fi
+
+is_running() {
+  ps cax | grep "$1" > /dev/null
+}
+
+# optionally restart Apache2 server
+if [ -x "/etc/init.d/apache2" ]; then
+  if is_running apache2; then
+    invoke-rc.d apache2 restart || exit $?
+  fi
+fi
+
+# optionally restart php-fpm service
+fpm_service=php${php_ver}-fpm
+if [ -s "/var/run/php/${fpm_service}.pid" ]; then
+  invoke-rc.d ${fpm_service} restart || exit $?
+fi

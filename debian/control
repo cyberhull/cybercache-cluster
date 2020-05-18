@@ -1,0 +1,71 @@
+Source: cybercache
+Section: database
+Priority: optional
+Maintainer: Vadim Sytnikov <vadim.sytnikov@cyberhull.com>
+Uploaders: Sergey Gromov <sergey.gromov@cyberhull.com>
+Build-Depends: debhelper (>= 9), cmake (>= 3.5), php-dev (>= 7), pandoc
+Standards-Version: 4.4.1
+Homepage: http://www.cyberhull.com/
+Vcs-Browser: https://github.com/cyberhull/cybercache-cluster
+Vcs-Git: https://github.com/cyberhull/cybercache-cluster.git
+
+Package: cybercache-ce
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: cybercache-ee, cybercache-extension-ee
+Description: High-performance cache for Magento 1 & 2 and Zend/PHP applications (CE)
+ CyberCache Community Edition is a high-performance general-purpose and
+ full-page cache solution for Magento and other Zend/PHP applications.
+ .
+ It comes with server daemon, console application, specialized PHP extensions,
+ and Magento 1 and 2 extensions. Supports concurrent processing (including
+ background optimization) on multi-code boxes, replication, binlogs, specialized
+ compression schemes, binary protocol, re-configuration at run time, and more.
+
+Package: cybercache-ee
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: phantomjs
+Conflicts: cybercache-ce, cybercache-extension-ce
+Description: High-performance cache for Magento 1 & 2 and Zend/PHP applications (EE)
+ CyberCache Enterprise Edition is a high-performance general-purpose and
+ full-page cache solution for Magento and other Zend/PHP applications.
+ .
+ It comes with server daemon, console application, specialized PHP extensions,
+ and Magento 1 and 2 extensions. Supports concurrent processing (including
+ background optimization) on multi-code boxes, replication, binlogs, specialized
+ compression schemes, binary protocol, re-configuration at run time, and more.
+ .
+ This edition also includes instrumented version of the server, supports custom
+ compression dictionaries, and provides other performance improvements.
+
+Package: cybercache-extension-ce
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, php-cli
+Suggests: cybercache-ce
+Conflicts: cybercache-ee, cybercache-extension-ee
+Description: CyberCache extension for Magento 1 & 2 (CE)
+ CyberCache Community Edition is a high-performance general-purpose and
+ full-page cache solution for Magento and other Zend/PHP applications.
+ .
+ It comes with server daemon, console application, specialized PHP extensions,
+ and Magento 1 and 2 extensions. Supports concurrent processing (including
+ background optimization) on multi-code boxes, replication, binlogs, specialized
+ compression schemes, binary protocol, re-configuration at run time, and more.
+
+Package: cybercache-extension-ee
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, php-cli
+Suggests: cybercache-ee
+Conflicts: cybercache-ce, cybercache-extension-ce
+Description: CyberCache extension for Magento 1 & 2 (EE)
+ CyberCache Enterprise Edition is a high-performance general-purpose and
+ full-page cache solution for Magento and other Zend/PHP applications.
+ .
+ It comes with server daemon, console application, specialized PHP extensions,
+ and Magento 1 and 2 extensions. Supports concurrent processing (including
+ background optimization) on multi-code boxes, replication, binlogs, specialized
+ compression schemes, binary protocol, re-configuration at run time, and more.
+ .
+ This edition also includes instrumented version of the server, supports custom
+ compression dictionaries, and provides other performance improvements.

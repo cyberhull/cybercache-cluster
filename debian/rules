@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+binary: cybercache-ce cybercache-extension-ce cybercache-ee cybercache-extension-ee
+
+cybercache-ce cybercache-extension-ce:
+	dh_testdir
+	dh_auto_configure -p$@ -- -DC3_EDITION=community
+	dh binary -p$@
+
+cybercache-ee cybercache-extension-ee:
+	dh_testdir
+	dh_auto_configure -p$@ -- -DC3_EDITION=enterprise
+	dh binary -p$@
+
+.PHONY: binary cybercache-ce cybercache-extension-ce cybercache-ee cybercache-extension-ee
