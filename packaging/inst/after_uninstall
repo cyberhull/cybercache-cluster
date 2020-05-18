@@ -19,7 +19,7 @@ set -e
 
 # remove config file links so that PHP does not try to load the extension
 if [ "$1" = "remove" ]; then
-  for php_mode in "cli" "fpm" "apache2"; do
+  for php_mode in "cli" "cgi" "fpm" "apache2"; do
     for php_ver in "7.0" "7.1" "7.2" "7.3"; do
       ini_link="/etc/php/$php_ver/$php_mode/conf.d/20-cybercache.ini"
       if [ -L "$ini_link" ]; then
