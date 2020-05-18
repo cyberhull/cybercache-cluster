@@ -16,6 +16,7 @@
 #
 
 REPO=https://github.com/cyberhull/magento2-module-cybercache
+SCRIPTDIR=$(cd "$(dirname "$0")" && pwd)
 
 EXT_TMP=$1
 if [[ -z $EXT_TMP ]]; then
@@ -29,7 +30,8 @@ if [[ -a $EXT_TMP && ! -d $EXT_TMP ]]; then
 fi
 
 # source product version from scripts/c3p.cfg
-VERSION=$(echo C3P[VERSION] | ../scripts/c3p)
+C3P=$SCRIPTDIR/../scripts/c3p
+VERSION=$(echo C3P[VERSION] | $C3P)
 VERSION_RE=${VERSION//./\\.}
 VERSION_RE=^${VERSION_RE%.*}..*
 
