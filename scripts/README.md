@@ -14,6 +14,8 @@ The `c3p` and `c3mp` scripts are used to build configuration and documentation
 files from the same source; the `c3p.md` file contains documentation for the
 former (script).
 
+The `compile_doc` script is used to build manual pages from markdown sources.
+
 The `copy_extension_modules` script copies compiled PHP extensions' files to
 appropriate system directories, and restarts running services that might be
 using them (such as Apache server and php-fpm daemon).
