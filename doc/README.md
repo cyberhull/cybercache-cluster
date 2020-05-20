@@ -8,7 +8,7 @@ please see `README.txt` in that directory for more information.
 
 The `command_interface.md` file contains CyberCache console documentation and
 serves as a source for the manual available via `man cybercache` command.
-In addition to the inpormation on console commands, it contains names of the
+In addition to the information on console commands, it contains names of the
 PHP functions available in PHP extensions shipped with CyberCache, as well as
 descriptions of low-level binary request and response sequences.
 

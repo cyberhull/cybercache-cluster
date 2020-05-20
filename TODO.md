@@ -381,9 +381,9 @@ them. In order to see which items are completed, you'll have to view this file a
   - exclude "brotli" compressor from Community Edition builds
 - fix DEB packages files/directories modes issues detected by Lintian
 - improve installation package by putting stuff into more befitting directories:
-  - move PHP extension API stubs into `/usr/share/cybercache`
-  - combine scripts from `/opt/cybercache/bin` into `/usr/bin/cybercache-ctl` (with command arguments)
-- create Magento extension installation script in `/opt/cybercache/bin`
+  - move PHP extension API stubs into `/usr/lib/cybercache`
+  - combine scripts from `/usr/lib/cybercache` into `/usr/bin/cybercache-ctl` (with command arguments)
+- create Magento extension installation script in `/usr/lib/cybercache`
   - call it from `/usr/bin/cybercache-ctl` on `install-magento-extension` switch
 - create "light" uncompression-only shared libs for all codecs except `lzf` and `snappy`
   - link "light" versions console and PHP client against them

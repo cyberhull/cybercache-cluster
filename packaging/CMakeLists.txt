@@ -24,7 +24,6 @@ c3_install(FILES files/php-ini/cybercache.ini
     DESTINATION etc/php/${PHP_SHORT_VERSION}/mods-available)
 
 set(appdir lib/cybercache)
-c3_install(FILES app/README.md.c3p DESTINATION ${appdir})
 c3_install(
     PROGRAMS
         app/check-cybercached

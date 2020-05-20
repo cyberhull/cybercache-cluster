@@ -34,10 +34,10 @@ Second Method
 -------------
 
 If you do not want to patch PhpStorm, you may want to just point it to `cybercache` API
-stub directory, which is `/opt/cybercache/stub` (please note that it is *NOT*
-`/opt/cybercache/stub/stubs/cybercache`!). To do that, open PhpStorm settings (`Settings`
+stub directory, which is `/usr/lib/cybercache/stub` (please note that it is *NOT*
+`/usr/lib/cybercache/stub/stubs/cybercache`!). To do that, open PhpStorm settings (`Settings`
 in the `File` menu), go to `Languages & Frameworks -> PHP`, switch to `PHP Runtime` tab,
-and enter `/opt/cybercache/stub` as `Default stubs path`. This method is inferior to
+and enter `/usr/lib/cybercache/stub` as `Default stubs path`. This method is inferior to
 patching in that it necessary to alter a global setting; however, if you have this path
 already set to a different location, you may want to just copy `cybercache.php` to
 `stubs/cybercache` subfolder at that location.
