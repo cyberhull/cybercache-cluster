@@ -49,7 +49,7 @@ and check that it's PHP 7.0:
 
     php -v
 
-2) Follow instructions in "/opt/cybercache/tests/readme.md"
+2) Follow instructions in "/usr/lib/cybercache/tests/README.md"
 
 ### PHP Interface ###
 

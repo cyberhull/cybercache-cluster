@@ -62,6 +62,10 @@ link_executable() {
 }
 
 set_edition() {
+  cfg=$1
+  svr=$2
+  php=$3
+  api=$4
 
   # 1) Pre-process configuration files
   # ----------------------------------
@@ -71,25 +75,25 @@ set_edition() {
     "server-option-test.cfg.c3p")
   for src in "${C3P_FILES[@]}"; do
     dst=${src%.c3p}
-    ../scripts/c3p -e $1 -f "$src" -o "$dst"
+    ../scripts/c3p -e $cfg -f "$src" -o "$dst"
   done
 
   # 2) Link executables
   # -------------------
 
   BDIR="../build"
-  link_executable "$BDIR/bin/cybercached-$2" "./dev-server"
-  link_executable "$BDIR/bin/cybercache-$3" "./dev-console"
+  link_executable "$BDIR/bin/cybercached-$svr" "./dev-server"
+  link_executable "$BDIR/bin/cybercache" "./dev-console"
 
   # 3) Copy PHP extension
   # ---------------------
 
-  LDIR="/usr/lib/php/$6"
+  LDIR="/usr/lib/php/$api"
   if ! [ -d $LDIR ]; then
-    echo "ERROR: PHP $5 extension directory does not exist."
+    echo "ERROR: PHP $php extension directory does not exist."
     exit 1
   fi
-  EFILE="$BDIR/lib/cybercache-$4-$6.so"
+  EFILE="$BDIR/lib/cybercache.so"
   LFILE="$LDIR/cybercache.so"
   echo "Copying $EFILE to $LFILE..."
   cp $EFILE $LFILE
@@ -141,14 +145,14 @@ set_edition() {
 echo "Switching to '$1' edition, PHP $2:"
 case "$1" in
   community)
-    # <configs> <server> <console> <extension>
-    set_edition 'ce' 'ce' 'ce' 'ce' $2 $API_VER
+    # <configs> <server> <phpver> <phpapi>
+    set_edition 'ce' 'ce' $2 $API_VER
     ;;
   enterprise)
-    set_edition 'ee' 'ee' 'ee' 'ee' $2 $API_VER
+    set_edition 'ee' 'ee' $2 $API_VER
     ;;
   instrumented)
-    set_edition 'ee' 'iee' 'ee' 'ee' $2 $API_VER
+    set_edition 'ee' 'iee' $2 $API_VER
     ;;
   *)
     echo "Unrecognized edition: '$1'"

@@ -31,7 +31,7 @@ as it does proper housekeeping (e.g. takes care of temporary files).
 How to test the server
 ----------------------
 
-The sollowing steps should be executed after successful installation of the
+The following steps should be executed after successful installation of the
 `cybercache` package:
 
 1) Switch to required CyberCache edition:
@@ -48,17 +48,17 @@ where `<edition>` is `community`, `enterprize`, or `instrumented`, and
 
 2) Make sure that the server is running:
 
-    sudo /opt/cybercache/bin/check-cybercached     (expected result: 'CyberCache is running')
-    /opt/cybercache/bin/ping-cybercached           (expected result: 'Response: OK')
-    /opt/cybercache/bin/query-cybercached          (expected result: 'Response: list of 19 strings ...')
+    sudo /usr/lib/cybercache/check-cybercached     (expected result: 'CyberCache is running')
+    /usr/lib/cybercache/ping-cybercached           (expected result: 'Response: OK')
+    /usr/lib/cybercache/query-cybercached          (expected result: 'Response: list of 19 strings ...')
 
 3) Stop the server (this is a **REQUIRED** step: test suite in
-  `/opt/cybercache/tests` relies on special configuration file that is a part
+  `/usr/lib/cybercache/tests` relies on special configuration file that is a part
   of the suite, so server will have to be started manually):
   
-    sudo /opt/cybercache/bin/stop-cybercached
+    sudo /usr/lib/cybercache/stop-cybercached
 
-4) Change directory to `/opt/cybercache/tests` (it should remain "current"
+4) Change directory to `/usr/lib/cybercache/tests` (it should remain "current"
   throughout all testing).
 
 5) Start the server again, this time from the test suite directory (the server
@@ -93,4 +93,4 @@ where `<edition>` is `community`, `enterprize`, or `instrumented`, and
 
 9) Start server in "normal" mode:
 
-    sudo /opt/cybercache/bin/start-cybercached
+    sudo /usr/lib/cybercache/start-cybercached
