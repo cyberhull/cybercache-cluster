@@ -47,7 +47,7 @@ First of all, CyberCache is free software distributed under GPL license, so you
 can utilize it and/or its components and source code [almost] any way you want.
 For instance:
 
-- CaberCache can be used as highly efficient Magento session store and cache,
+- CyberCache can be used as highly efficient Magento session store and cache,
   especially suitable for big sites with, say, 50,000+ products.
 
 - You can adapt CyberCache for any PHP-based framework or CMS having Zend
